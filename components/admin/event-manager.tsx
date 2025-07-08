@@ -40,35 +40,6 @@ interface Event {
   results?: {pos: string; name: string; url: string}[]
 }
 
-/* const ImageDropzone = ({ onUpload }: { onUpload: (url: string) => void }) => {
-  const onDrop = useCallback(async (acceptedFiles: File[]) => {
-    for (const file of acceptedFiles) {
-      const url = await uploadToSupabase(file)
-      if (url) {
-        onUpload(url)
-      }
-    }
-  }, [])
-
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop,
-    accept: { "image/*": [] },
-    multiple: true,
-  })
-
-  return (
-    <div
-      {...getRootProps()}
-      className="border border-dashed border-gray-400 p-6 text-center rounded-md cursor-pointer hover:border-primary transition"
-    >
-      <input {...getInputProps()} />
-      {isDragActive
-        ? "Drop the images here..."
-        : "Drag & drop images here, or click to select files"}
-    </div>
-  )
-} */
-
 export function EventManager() {
   const [events, setEvents] = useState<Event[]>([])
   const [isDialogOpen, setIsDialogOpen] = useState(false)
@@ -115,42 +86,6 @@ export function EventManager() {
   }
 
   useEffect(() => {
-    // Mock data - in real app, fetch from API
-/*     const mockEvents: Event[] = [
-      {
-        id: "1",
-        title: "Annual Tech Symposium 2024",
-        description: "Join us for our biggest technical event of the year featuring industry experts.",
-        date: "2024-12-25",
-        time: "10:00",
-        image: "/placeholder.svg?height=300&width=400",
-        isPinned: true,
-        status: "upcoming",
-      },
-      {
-        id: "2",
-        title: "Web Development Workshop",
-        description: "Learn modern web development with React and Next.js.",
-        date: "2024-01-15",
-        time: "14:00",
-        image: "/placeholder.svg?height=300&width=400",
-        isPinned: false,
-        status: "upcoming",
-      },
-      {
-        id: "3",
-        title: "Annual Hackathon 2023",
-        description: "A 48-hour coding marathon with amazing prizes.",
-        date: "2023-11-15",
-        time: "09:00",
-        image: "/placeholder.svg?height=300&width=400",
-        isPinned: false,
-        status: "past",
-        gallery: ["/placeholder.svg?height=400&width=600"],
-      },
-    ] */
-    
-    /* setEvents(mockEvents) */
     fetchEvents()
   }, [])
 
@@ -275,31 +210,6 @@ export function EventManager() {
     }    
   }
 
-/*   const togglePin = async (eventId: string) => {    
-    const eventToToggle = events.find((e) => e.id === eventId)
-    if (!eventToToggle) return
-
-    const newPinState = !eventToToggle.isPinned
-
-    const { error } = await supabase
-      .from("events")
-      .update({ isPinned: newPinState })
-      .eq("id", eventId)
-
-    if (!error) {
-      setEvents((prev) =>
-        prev.map((event) =>
-          event.id === eventId ? { ...event, isPinned: newPinState } : event
-        )
-      )
-      toast({ title: "Event pin status updated" })
-    } else {
-      toast({ title: "Failed to update pin status", variant: "destructive" })
-      console.error(error)
-    }
-    await fetchEvents()
-  } */
-  
   const togglePin = async (eventId: string, currentState: boolean) => {
     const res = await fetch("/api/events/update", {
       method: "POST",

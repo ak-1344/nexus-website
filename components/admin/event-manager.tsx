@@ -2,7 +2,8 @@
 
 import type React from "react"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
+import { useDropzone } from "react-dropzone"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -19,7 +20,7 @@ import {
 } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
 import { useToast } from "@/hooks/use-toast"
-import { Plus, Edit, Trash2, Calendar, Pin } from "lucide-react"
+import { Plus, Edit, Trash2, Calendar, Pin, MapPinned } from "lucide-react"
 
 interface Event {
   id: string
@@ -27,29 +28,95 @@ interface Event {
   description: string
   date: string
   time: string
-  image: string
+  location: string
+  bannerImage?: string
   isPinned: boolean
   status: "upcoming" | "past"
   gallery?: string[]
+  stats?: {label: string; value: string} []
+  participants?: string
+  outcomes?: string[]
+  socialPosts?: {platform: string; url: string} []
+  results?: {pos: string; name: string; url: string}[]
 }
+
+/* const ImageDropzone = ({ onUpload }: { onUpload: (url: string) => void }) => {
+  const onDrop = useCallback(async (acceptedFiles: File[]) => {
+    for (const file of acceptedFiles) {
+      const url = await uploadToSupabase(file)
+      if (url) {
+        onUpload(url)
+      }
+    }
+  }, [])
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept: { "image/*": [] },
+    multiple: true,
+  })
+
+  return (
+    <div
+      {...getRootProps()}
+      className="border border-dashed border-gray-400 p-6 text-center rounded-md cursor-pointer hover:border-primary transition"
+    >
+      <input {...getInputProps()} />
+      {isDragActive
+        ? "Drop the images here..."
+        : "Drag & drop images here, or click to select files"}
+    </div>
+  )
+} */
 
 export function EventManager() {
   const [events, setEvents] = useState<Event[]>([])
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [editingEvent, setEditingEvent] = useState<Event | null>(null)
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    title: string
+    description: string
+    date: string
+    time: string
+    location: string
+    bannerImage?: string
+    isPinned: boolean
+    gallery?: string[]
+    stats?: { label: string; value: string }[]
+    participants?: string
+    outcomes?: string[]
+    socialPosts?: {platform: string; url: string} []
+    results?: {pos: string; name: string; url: string}[]
+  }>({
     title: "",
     description: "",
     date: "",
     time: "",
-    image: "",
+    location: "",
+    bannerImage: "",
     isPinned: false,
+    gallery: [],
+    stats: [],
+    participants: "",
+    outcomes: [],
+    socialPosts: [],
+    results: []
   })
   const { toast } = useToast()
+  const fetchEvents = async () => {
+    const response = await fetch("/api/events")
+    const res = await response.json()
+
+    if (response.ok) {
+      setEvents(res.data)
+    } else {
+      console.error("Error fetching events:", res.error)
+    }
+  }
 
   useEffect(() => {
     // Mock data - in real app, fetch from API
-    const mockEvents: Event[] = [
+/*     const mockEvents: Event[] = [
       {
         id: "1",
         title: "Annual Tech Symposium 2024",
@@ -81,39 +148,54 @@ export function EventManager() {
         status: "past",
         gallery: ["/placeholder.svg?height=400&width=600"],
       },
-    ]
-    setEvents(mockEvents)
+    ] */
+    
+    /* setEvents(mockEvents) */
+    fetchEvents()
   }, [])
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (editingEvent) {
-      // Update existing event
-      setEvents((prev) =>
-        prev.map((event) =>
-          event.id === editingEvent.id
-            ? {
-                ...event,
-                ...formData,
-                status: new Date(`${formData.date} ${formData.time}`) > new Date() ? "upcoming" : "past",
-              }
-            : event,
-        ),
-      )
-      toast({ title: "Event updated successfully" })
-    } else {
-      // Create new event
-      const newEvent: Event = {
-        id: Date.now().toString(),
-        ...formData,
-        status: new Date(`${formData.date} ${formData.time}`) > new Date() ? "upcoming" : "past",
-      }
-      setEvents((prev) => [...prev, newEvent])
-      toast({ title: "Event created successfully" })
+    const payload = {
+      title: formData.title,
+      description: formData.description,
+      date: formData.date,
+      time: formData.time,
+      location: formData.location,
+      bannerImage: formData.bannerImage || null,
+      isPinned: formData.isPinned,
+      status: new Date(`${formData.date} ${formData.time}`) > new Date() ? "upcoming" : "past",
+      gallery: formData.gallery ?? [],
+      stats: formData.stats ?? [],
+      participants: formData.participants,
+      outcomes: formData.outcomes ?? [],
+      socialPosts: formData.socialPosts ?? [],
+      results: formData.results ?? [],
     }
 
-    resetForm()
+    try {
+      const response = await fetch(
+        editingEvent ? `/api/events/update?id=${editingEvent.id}` : "/api/events/create",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        }
+      )
+
+      const res = await response.json()
+      if (!response.ok) throw new Error(res.message || "Failed")
+
+      toast({ title: editingEvent ? "Event updated successfully" : "Event created successfully" })
+      await fetchEvents()
+      resetForm()
+    } catch (err) {
+      console.error(err)
+      toast({ title: "Failed to save event", variant: "destructive" })
+    }
   }
 
   const resetForm = () => {
@@ -122,8 +204,15 @@ export function EventManager() {
       description: "",
       date: "",
       time: "",
-      image: "",
+      location: "",
+      bannerImage: "",
       isPinned: false,
+      gallery: [],
+      stats: [],
+      participants: "",
+      outcomes: [],
+      socialPosts: [],
+      results: []
     })
     setEditingEvent(null)
     setIsDialogOpen(false)
@@ -132,31 +221,105 @@ export function EventManager() {
   const handleEdit = (event: Event) => {
     setEditingEvent(event)
     setFormData({
-      title: event.title,
-      description: event.description,
-      date: event.date,
-      time: event.time,
-      image: event.image,
-      isPinned: event.isPinned,
+      title: event.title || "",
+      description: event.description || "",
+      date: event.date || "",
+      time: event.time || "",
+      location: event.location || "",
+      bannerImage: event.bannerImage || "",
+      isPinned: event.isPinned || false,
+      gallery: event.gallery ?? [],
+      stats: event.stats ?? [],
+      participants: event.participants || "",
+      outcomes: event.outcomes ?? [],
+      socialPosts: event.socialPosts ?? [],
+      results: event.results ?? []
     })
     setIsDialogOpen(true)
   }
 
-  const handleDelete = (eventId: string) => {
-    setEvents((prev) => prev.filter((event) => event.id !== eventId))
-    toast({ title: "Event deleted successfully" })
+  const handleDelete = async (eventId: string) => {
+    const response = await fetch(`/api/events/delete?id=${eventId}`, {
+      method: "DELETE",
+    })
+
+    const data = await response.json()
+
+    if (!response.ok) {
+      toast({ title: "Failed to delete event", variant: "destructive" })
+      console.error(data)
+    } else {
+      toast({ title: "Event deleted successfully" })
+      await fetchEvents()
+    }
   }
 
-  const togglePin = (eventId: string) => {
-    setEvents((prev) =>
-      prev.map((event) => ({
-        ...event,
-        isPinned: event.id === eventId ? !event.isPinned : false, // Only one event can be pinned
-      })),
-    )
-    toast({ title: "Event pin status updated" })
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    const formData = new FormData()
+    formData.append("file", file)
+    try {
+      const response = await fetch("/api/events/upload", {
+        method: "POST",
+        body: formData,
+      })
+      const data = await response.json()
+      if (data.url) {
+        setFormData((prev) => ({ ...prev, bannerImage: data.url }))
+      }
+    } catch (error) {
+      console.error("Image upload failed:", error)
+      toast({ title: "Failed to upload image", variant: "destructive" })
+    }    
   }
 
+/*   const togglePin = async (eventId: string) => {    
+    const eventToToggle = events.find((e) => e.id === eventId)
+    if (!eventToToggle) return
+
+    const newPinState = !eventToToggle.isPinned
+
+    const { error } = await supabase
+      .from("events")
+      .update({ isPinned: newPinState })
+      .eq("id", eventId)
+
+    if (!error) {
+      setEvents((prev) =>
+        prev.map((event) =>
+          event.id === eventId ? { ...event, isPinned: newPinState } : event
+        )
+      )
+      toast({ title: "Event pin status updated" })
+    } else {
+      toast({ title: "Failed to update pin status", variant: "destructive" })
+      console.error(error)
+    }
+    await fetchEvents()
+  } */
+  
+  const togglePin = async (eventId: string, currentState: boolean) => {
+    const res = await fetch("/api/events/update", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        id: eventId,
+        updates: { isPinned: !currentState }
+      }),
+    })
+
+    if (res.ok) {
+      toast({ title: "Event pin status updated" })
+      await fetchEvents()
+    } else {
+      toast({ title: "Failed to update pin status", variant: "destructive" })
+    }
+  }
+
+  
+  const isPast = new Date(`${formData.date}T${formData.time}`) < new Date()
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -171,83 +334,329 @@ export function EventManager() {
               Add Event
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col">
             <DialogHeader>
               <DialogTitle>{editingEvent ? "Edit Event" : "Create New Event"}</DialogTitle>
               <DialogDescription>
                 {editingEvent ? "Update event details" : "Add a new event to the club calendar"}
               </DialogDescription>
             </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <form onSubmit={handleSubmit} className="flex flex-col flex-grow overflow-hidden">
+              <div className="space-y-4 overflow-y-auto pr-4 pl-2 scrollbar-gutter-stable custom-scroll flex-grow">
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Event Title */}
+                  <div className="space-y-2">
+                    <Label htmlFor="title">Event Title *</Label>
+                    <Input
+                      id="title"
+                      value={formData.title}
+                      onChange={(e) => setFormData((prev) => ({ ...prev, title: e.target.value }))}
+                      required
+                      placeholder="Enter event title"
+                    />
+                  </div>
+                  {/* Pin to Hero Section */}
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      id="pinned"
+                      checked={formData.isPinned}
+                      onCheckedChange={(checked) => setFormData((prev) => ({ ...prev, isPinned: checked as boolean }))}
+                    />
+                    <Label htmlFor="pinned" className="text-sm">
+                      Pin to Hero Section
+                    </Label>
+                  </div>
+                </div>
+
+                {/* Description */}
                 <div className="space-y-2">
-                  <Label htmlFor="title">Event Title *</Label>
-                  <Input
-                    id="title"
-                    value={formData.title}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, title: e.target.value }))}
+                  <Label htmlFor="description">Description *</Label>
+                  <Textarea
+                    id="description"
+                    value={formData.description}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
                     required
-                    placeholder="Enter event title"
+                    placeholder="Describe the event..."
+                    rows={3}
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="image">Cover Image URL</Label>
-                  <Input
-                    id="image"
-                    value={formData.image}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, image: e.target.value }))}
-                    placeholder="https://example.com/image.jpg"
-                  />
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Date */}
+                  <div className="space-y-2">
+                    <Label htmlFor="date">Date *</Label>
+                    <Input
+                      id="date"
+                      type="date"
+                      value={formData.date}
+                      onChange={(e) => setFormData((prev) => ({ ...prev, date: e.target.value }))}
+                      required
+                    />
+                  </div>
+                  {/* Time */}
+                  <div className="space-y-2">
+                    <Label htmlFor="time">Time *</Label>
+                    <Input
+                      id="time"
+                      type="time"
+                      value={formData.time}
+                      onChange={(e) => setFormData((prev) => ({ ...prev, time: e.target.value }))}
+                      required
+                    />
+                  </div>
                 </div>
-              </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="description">Description *</Label>
-                <Textarea
-                  id="description"
-                  value={formData.description}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
-                  required
-                  placeholder="Describe the event..."
-                  rows={3}
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Location */}
                 <div className="space-y-2">
-                  <Label htmlFor="date">Date *</Label>
+                  <Label htmlFor="location">Location *</Label>
                   <Input
-                    id="date"
-                    type="date"
-                    value={formData.date}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, date: e.target.value }))}
+                    id="location"
+                    value={formData.location}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, location: e.target.value }))}
                     required
+                    placeholder="Where is it held?"
                   />
                 </div>
+
+                {/* Banner Image */}
                 <div className="space-y-2">
-                  <Label htmlFor="time">Time *</Label>
+                  <Label htmlFor="upload">Upload Image</Label>
                   <Input
-                    id="time"
-                    type="time"
-                    value={formData.time}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, time: e.target.value }))}
-                    required
+                    id="upload"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageChange}
                   />
                 </div>
+
+
+                {/* Stats */}
+                <div className="space-y-2">
+                  <Label>Stats</Label>
+                  {formData.stats?.map((stat, index) => (
+                    <div key={index} className="flex gap-2 items-center">
+                      <Input
+                        placeholder="Label"
+                        value={stat.label}
+                        onChange={(e) =>
+                          setFormData((prev) => {
+                            const updated = [...(prev.stats ?? [])]
+                            updated[index].label = e.target.value
+                            return { ...prev, stats: updated }
+                          })
+                        }
+                      />
+                      <Input
+                        placeholder="Value"
+                        value={stat.value}
+                        onChange={(e) =>
+                          setFormData((prev) => {
+                            const updated = [...(prev.stats ?? [])]
+                            updated[index].value = e.target.value
+                            return { ...prev, stats: updated }
+                          })
+                        }
+                      />
+                      <Button
+                        type="button"
+                        size="icon"
+                        variant="ghost"
+                        onClick={() =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            stats: (prev.stats ?? []).filter((_, i) => i !== index),
+                          }))
+                        }
+                      >
+                        <Trash2 className="h-4 w-4 text-red-500" />
+                      </Button>
+                    </div>
+                  ))}
+
+                  <br></br>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    onClick={() =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        stats: [...(prev.stats ?? []), { label: "", value: "" }],
+                      }))
+                    }
+                  >
+                    + Add Stat
+                  </Button>
+                </div>
+
+                {isPast && (
+                  <>
+                    {/* Participants */}
+                    <div className="space-y-2">
+                      <Label htmlFor="participants">Participants</Label>
+                      <Input
+                        id="participants"
+                        value={formData.participants}
+                        onChange={(e) =>
+                          setFormData((prev) => ({ ...prev, participants: e.target.value }))
+                        }
+                        placeholder="Number or names of participants"
+                      />
+                    </div>
+
+                    {/* Outcomes */}
+                    <div className="space-y-2">
+                      <Label htmlFor="outcomes">Outcomes</Label>
+                      <Textarea
+                        id="outcomes"
+                        value={formData.outcomes?.join("\n") || ""}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            outcomes: e.target.value.split("\n"),
+                          }))
+                        }
+                        placeholder="List outcomes line by line"
+                        rows={3}
+                      />
+                    </div>
+                    
+                    {/* Social Posts */}
+                    <div className="space-y-2">
+                      <Label>Social Posts</Label>
+                      {formData.socialPosts?.map((stat, index) => (
+                        <div key={index} className="flex gap-2 items-center">
+                          <Input
+                            placeholder="Platform"
+                            value={stat.platform}
+                            onChange={(e) =>
+                              setFormData((prev) => {
+                                const updated = [...(prev.socialPosts ?? [])]
+                                updated[index].platform = e.target.value
+                                return { ...prev, socialPosts: updated }
+                              })
+                            }
+                          />
+                          <Input
+                            placeholder="URL"
+                            value={stat.url}
+                            onChange={(e) =>
+                              setFormData((prev) => {
+                                const updated = [...(prev.socialPosts ?? [])]
+                                updated[index].url = e.target.value
+                                return { ...prev, socialPosts: updated }
+                              })
+                            }
+                          />
+                          <Button
+                            type="button"
+                            size="icon"
+                            variant="ghost"
+                            onClick={() =>
+                              setFormData((prev) => ({
+                                ...prev,
+                                socialPosts: (prev.socialPosts ?? []).filter((_, i) => i !== index),
+                              }))
+                            }
+                          >
+                            <Trash2 className="h-4 w-4 text-red-500" />
+                          </Button>
+                        </div>
+                      ))}
+
+                      <br></br>
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        size="sm"
+                        onClick={() =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            socialPosts: [...(prev.socialPosts ?? []), { platform: "", url: "" }],
+                          }))
+                        }
+                      >
+                        + Add Platform
+                      </Button>
+                    </div>
+                    
+                    {/* Results */}
+                    <div className="space-y-2">
+                      <Label>Results</Label>
+                      {formData.results?.map((result, index) => (
+                        <div key={index} className="flex gap-2 items-center">
+                          <Input
+                            placeholder="Position"
+                            value={result.pos}
+                            onChange={(e) =>
+                              setFormData((prev) => {
+                                const updated = [...(prev.results ?? [])]
+                                updated[index].pos = e.target.value
+                                return { ...prev, results: updated }
+                              })
+                            }
+                          />
+                          <Input
+                            placeholder="Name"
+                            value={result.name}
+                            onChange={(e) =>
+                              setFormData((prev) => {
+                                const updated = [...(prev.results ?? [])]
+                                updated[index].name = e.target.value
+                                return { ...prev, results: updated }
+                              })
+                            }
+                          />
+                          <Input
+                            placeholder="URL"
+                            value={result.url}
+                            onChange={(e) =>
+                              setFormData((prev) => {
+                                const updated = [...(prev.results ?? [])]
+                                updated[index].url = e.target.value
+                                return { ...prev, results: updated }
+                              })
+                            }
+                          />
+                          <Button
+                            type="button"
+                            size="icon"
+                            variant="ghost"
+                            onClick={() =>
+                              setFormData((prev) => ({
+                                ...prev,
+                                results: (prev.results ?? []).filter((_, i) => i !== index),
+                              }))
+                            }
+                          >
+                            <Trash2 className="h-4 w-4 text-red-500" />
+                          </Button>
+                        </div>
+                      ))}
+
+                      <br></br>
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        size="sm"
+                        onClick={() =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            results: [...(prev.results ?? []), { pos: "", name: "", url: "" }],
+                          }))
+                        }
+                      >
+                        + Add Result
+                      </Button>
+                    </div>
+
+                  </>
+                )}
               </div>
 
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="pinned"
-                  checked={formData.isPinned}
-                  onCheckedChange={(checked) => setFormData((prev) => ({ ...prev, isPinned: checked as boolean }))}
-                />
-                <Label htmlFor="pinned" className="text-sm">
-                  Pin to Hero Section
-                </Label>
-              </div>
-
-              <div className="flex gap-2 pt-4">
+              {/* Save, Update and Cancel */}
+              <div className="flex gap-2 pt-4 border-t mt-4 pt-4">
                 <Button type="submit" className="flex-1">
                   {editingEvent ? "Update Event" : "Create Event"}
                 </Button>
@@ -279,6 +688,11 @@ export function EventManager() {
                   <Calendar className="h-4 w-4" />
                   {new Date(event.date).toLocaleDateString()} at {event.time}
                 </div>
+                <br></br>
+                <div className="flex items-center gap-2 text-sm">
+                  <MapPinned className="h-4 w-4" />
+                  Venue: {event.location}
+                </div>
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -290,7 +704,7 @@ export function EventManager() {
                 <Button
                   size="sm"
                   variant="outline"
-                  onClick={() => togglePin(event.id)}
+                  onClick={() => togglePin(event.id, event.isPinned)}
                   className={event.isPinned ? "bg-yellow-500/10" : ""}
                 >
                   <Pin className="h-4 w-4" />

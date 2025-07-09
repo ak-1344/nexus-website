@@ -14,6 +14,7 @@ interface Event {
   date: string
   image: string
   status: "past" | "upcoming"
+  bannerImage?: string
 }
 
 interface Magazine {
@@ -32,14 +33,26 @@ interface GalleryItem {
 }
 
 export function FeaturedWorkGrid() {
+  const [events, setEvents] = useState<Event[]>([])
   const [pastEvents, setPastEvents] = useState<Event[]>([])
   const [upcomingEvents, setUpcomingEvents] = useState<Event[]>([])
   const [magazines, setMagazines] = useState<Magazine[]>([])
   const [galleries, setGalleries] = useState<GalleryItem[]>([])
+  
+  const fetchEvents = async () => {
+    const response = await fetch("/api/events")
+    const res = await response.json()
+
+    if (response.ok) {
+      setEvents(res.data)
+    } else {
+      console.error("Error fetching events:", res.error)
+    }
+  }
 
   useEffect(() => {
-    // Mock data
-    setPastEvents([
+    
+/*     setPastEvents([
       {
         id: "1",
         title: "Annual Hackathon 2023",
@@ -61,9 +74,9 @@ export function FeaturedWorkGrid() {
         image: "/placeholder.svg?height=200&width=300",
         status: "past",
       },
-    ])
+    ]) */
 
-    setUpcomingEvents([
+/*     setUpcomingEvents([
       {
         id: "4",
         title: "Annual Tech Symposium 2024",
@@ -78,26 +91,32 @@ export function FeaturedWorkGrid() {
         image: "/placeholder.svg?height=200&width=300",
         status: "upcoming",
       },
-    ])
+    ]) */
 
+    fetchEvents()
+    setPastEvents(events.filter(event => event.status === "past"))
+    setUpcomingEvents(events.filter(event => event.status === "upcoming"))
+
+    // Mock data
     setMagazines([
       { id: "1", title: "Tech Weekly", issue: "#15", date: "2024-01-15" },
       { id: "2", title: "Innovation Digest", issue: "#12", date: "2024-01-08" },
       { id: "3", title: "Code Chronicles", issue: "#8", date: "2024-01-01" },
     ])
 
+    // Mock data
     setGalleries([
       { id: "1", title: "Hackathon 2023", coverImage: "/placeholder.svg?height=150&width=200", photoCount: 45 },
       { id: "2", title: "Tech Talk Series", coverImage: "/placeholder.svg?height=150&width=200", photoCount: 28 },
       { id: "3", title: "Workshop Sessions", coverImage: "/placeholder.svg?height=150&width=200", photoCount: 32 },
     ])
-  }, [])
+  }, [events])
 
   const EventCard = ({ event }: { event: Event }) => (
     <Link href={`/events/${event.id}`}>
       <Card className="backdrop-panel border-primary/20 glow-hover cursor-pointer mb-4 transition-all duration-300">
         <div className="relative h-32 overflow-hidden rounded-t-lg">
-          <Image src={event.image || "/placeholder.svg"} alt={event.title} fill className="object-cover" />
+          <Image src={event.bannerImage || "/placeholder.svg"} alt={event.title} fill className="object-cover" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
           <div className="absolute bottom-2 left-2">
             <Badge variant="outline" className="border-primary text-primary bg-black/50">

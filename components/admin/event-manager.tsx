@@ -189,16 +189,31 @@ export function EventManager() {
     }
   }
 
+  const deleteImage = async (url: string | undefined) => {
+    if (!url) return
+    const filePath = url.split("/").pop()
+    try {
+      await fetch(`/api/events/delete-image?file=${filePath}`, {
+        method: "DELETE",
+      })
+    } catch (err) {
+      console.error("Failed to delete image", err)
+    }
+  }
+
+
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
 
-    const formData = new FormData()
-    formData.append("file", file)
+    await deleteImage(formData.bannerImage)
+
+    const formDataUpload = new FormData()
+    formDataUpload.append("file", file)
     try {
-      const response = await fetch("/api/events/upload", {
+      const response = await fetch("/api/events/upload-image", {
         method: "POST",
-        body: formData,
+        body: formDataUpload,
       })
       const data = await response.json()
       if (data.url) {
@@ -209,6 +224,45 @@ export function EventManager() {
       toast({ title: "Failed to upload image", variant: "destructive" })
     }    
   }
+
+  const handleGalleryUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (!files || files.length === 0) return
+
+    const formData = new FormData()
+    for (const file of files) formData.append("file", file)
+
+    try {
+      const res = await fetch("/api/events/upload-gallery", {
+        method: "POST",
+        body: formData,
+      })
+
+      const data = await res.json()
+      if (data.urls) { setFormData(prev => ({ ...prev, gallery: [...(prev.gallery ?? []), ...data.urls]}))}
+    } catch (err) {
+      console.error("Gallery upload failed:", err)
+      toast({ title: "Failed to upload images", variant: "destructive" })
+    }
+  }
+
+  const deleteGalleryImage = async (url: string) => {
+    const path = url.split("/").slice(-1)[0]
+
+    const res = await fetch("/api/events/delete-image", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ path }),
+    })
+
+    if (res.ok) {
+      setFormData(prev => ({...prev, gallery: (prev.gallery ?? []).filter(img => img !== url)}))
+      toast({ title: "Image removed" })
+    } else {
+      toast({ title: "Failed to delete image", variant: "destructive" })
+    }
+  }
+
 
   const togglePin = async (eventId: string, currentState: boolean) => {
     const res = await fetch("/api/events/update", {
@@ -331,7 +385,27 @@ export function EventManager() {
 
                 {/* Banner Image */}
                 <div className="space-y-2">
-                  <Label htmlFor="upload">Upload Image</Label>
+                  <Label htmlFor="upload">Upload Banner Image</Label>
+                  {formData.bannerImage && (
+                    <div className="relative w-full max-w-sm">
+                      <img
+                        src={formData.bannerImage}
+                        alt="Banner Preview"
+                        className="w-full rounded shadow"
+                      />
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          await deleteImage(formData.bannerImage)
+                          setFormData((prev) => ({ ...prev, bannerImage: "" }))
+                        }}
+                        className="absolute top-2 right-2 bg-white p-1 rounded-full shadow hover:bg-red-100"
+                        title="Delete Image"
+                      >
+                        <Trash2 className="w-5 h-5 text-red-500" />
+                      </button>
+                    </div>
+                  )}
                   <Input
                     id="upload"
                     type="file"
@@ -340,6 +414,39 @@ export function EventManager() {
                   />
                 </div>
 
+                {/* Gallery Upload */}
+                <div className="space-y-2">
+                  <Label htmlFor="upload">Upload Gallery</Label>
+                  <div className="flex flex-wrap gap-3">
+                    {formData.gallery?.map((img, index) => (
+                      <div key={index} className="relative group">
+                        <img 
+                          src={img}
+                          alt={`Gallery ${index}`}
+                          className="h-24 w-24 object-cover rounded-md" 
+                        />
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            await deleteImage(img)
+                            console.log(img)
+                            setFormData((prev) => ({ ...prev, gallery: prev.gallery?.filter((image) => image !== img)}))
+                          }}
+                          className="absolute top-1 right-1 bg-black bg-opacity-60 p-1 rounded-full hidden group-hover:block"
+                        >
+                          <Trash2 className="w-5 h-5 text-red-500" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                  <Input
+                    id="upload-gallery"
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={handleGalleryUpload}
+                  />
+                </div>
 
                 {/* Stats */}
                 <div className="space-y-2">

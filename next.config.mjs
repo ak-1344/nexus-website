@@ -2,8 +2,11 @@
 const nextConfig = {
   reactStrictMode: true,
   images: {
-    domains: [],
+    domains: [process.env.NEXT_PUBLIC_SUPABASE_PROJECT + '.supabase.co'],
     formats: ['image/avif', 'image/webp'],
+  },
+  env: {
+    NEXT_PUBLIC_SUPABASE_PROJECT: process.env.NEXT_PUBLIC_SUPABASE_PROJECT,
   },
   experimental: {
     optimizeCss: true,

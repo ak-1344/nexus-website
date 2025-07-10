@@ -12,61 +12,27 @@ interface UpcomingEvent {
   id: string
   title: string
   date: string
-  time: string
-  image: string
+  bannerImage: string
   summary: string
   registrationLink?: string
   status: "upcoming"
+  time: string
+  slug: string
 }
 
 export default function UpcomingEventsPage() {
   const [upcomingEvents, setUpcomingEvents] = useState<UpcomingEvent[]>([])
   const [countdowns, setCountdowns] = useState<{ [key: string]: { days: number; hours: number; minutes: number } }>({})
 
+  const fetchUpcomingEvents = async () => {
+    const response = await fetch("api/events?status=upcoming")
+    const res = await response.json()
+    if (response.ok) { setUpcomingEvents(res.data)} 
+    else { console.error("Error fetching upcoming events:", res.error)}
+  }
+
   useEffect(() => {
-    // Mock data - in real app, fetch from API
-    const mockUpcomingEvents: UpcomingEvent[] = [
-      {
-        id: "4",
-        title: "Annual Tech Symposium 2024",
-        date: "2024-12-25",
-        time: "10:00 AM",
-        image: "/placeholder.svg?height=300&width=400",
-        summary: "Join us for our biggest technical event featuring industry experts and innovation showcases.",
-        registrationLink: "https://nexusclub.edu/register/symposium2024",
-        status: "upcoming",
-      },
-      {
-        id: "5",
-        title: "React Workshop",
-        date: "2024-02-15",
-        time: "02:00 PM",
-        image: "/placeholder.svg?height=300&width=400",
-        summary: "Learn modern React development with hooks, context, and best practices.",
-        registrationLink: "https://nexusclub.edu/register/react-workshop",
-        status: "upcoming",
-      },
-      {
-        id: "9",
-        title: "Cloud Computing Seminar",
-        date: "2024-03-10",
-        time: "11:00 AM",
-        image: "/placeholder.svg?height=300&width=400",
-        summary: "Explore AWS, Azure, and Google Cloud platforms with hands-on demos.",
-        registrationLink: "https://nexusclub.edu/register/cloud-seminar",
-        status: "upcoming",
-      },
-      {
-        id: "10",
-        title: "Blockchain Workshop",
-        date: "2024-04-05",
-        time: "09:00 AM",
-        image: "/placeholder.svg?height=300&width=400",
-        summary: "Understanding blockchain technology and cryptocurrency development.",
-        status: "upcoming",
-      },
-    ]
-    setUpcomingEvents(mockUpcomingEvents)
+    fetchUpcomingEvents()
   }, [])
 
   // Countdown timer effect
@@ -116,7 +82,12 @@ export default function UpcomingEventsPage() {
           {upcomingEvents.map((event) => (
             <Card key={event.id} className="backdrop-panel border-primary/20 glow-effect overflow-hidden">
               <div className="relative h-64 overflow-hidden">
-                <Image src={event.image || "/placeholder.svg"} alt={event.title} fill className="object-cover" />
+                <Image 
+                  src={event.bannerImage || "/placeholder.svg"} 
+                  alt={event.title} 
+                  fill 
+                  className="object-cover" 
+                />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
                 <div className="absolute top-4 left-4">
                   <Badge variant="outline" className="border-green-500 text-green-400 bg-black/50">
@@ -160,7 +131,7 @@ export default function UpcomingEventsPage() {
                 )}
 
                 <div className="flex gap-3">
-                  <Link href={`/events/${event.id}`} className="flex-1">
+                  <Link href={`/events/${event.slug}?id=${event.id}`} className="flex-1">
                     <Button variant="outline" className="w-full border-primary text-primary hover:bg-primary/10">
                       View Details
                     </Button>

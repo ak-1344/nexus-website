@@ -38,6 +38,7 @@ interface Event {
   outcomes?: string[]
   socialPosts?: {platform: string; url: string} []
   results?: {pos: string; name: string; url: string}[]
+  registrationLink?: string
 }
 
 export function EventManager() {
@@ -58,6 +59,7 @@ export function EventManager() {
     outcomes?: string[]
     socialPosts?: {platform: string; url: string} []
     results?: {pos: string; name: string; url: string}[]
+    registrationLink?: string
   }>({
     title: "",
     description: "",
@@ -71,7 +73,8 @@ export function EventManager() {
     participants: "",
     outcomes: [],
     socialPosts: [],
-    results: []
+    results: [],
+    registrationLink: ""
   })
   const { toast } = useToast()
   const fetchEvents = async () => {
@@ -107,6 +110,8 @@ export function EventManager() {
       outcomes: formData.outcomes ?? [],
       socialPosts: formData.socialPosts ?? [],
       results: formData.results ?? [],
+      slug: formData.title.toLowerCase().replace(/\s+/g, "-").replace(/[^\w\-]+/g, ""),
+      registrationLink: formData.registrationLink || null
     }
 
     try {
@@ -147,7 +152,8 @@ export function EventManager() {
       participants: "",
       outcomes: [],
       socialPosts: [],
-      results: []
+      results: [],
+      registrationLink: ""
     })
     setEditingEvent(null)
     setIsDialogOpen(false)
@@ -168,25 +174,10 @@ export function EventManager() {
       participants: event.participants || "",
       outcomes: event.outcomes ?? [],
       socialPosts: event.socialPosts ?? [],
-      results: event.results ?? []
+      results: event.results ?? [],
+      registrationLink: event.registrationLink || ""
     })
     setIsDialogOpen(true)
-  }
-
-  const handleDelete = async (eventId: string) => {
-    const response = await fetch(`/api/events/delete?id=${eventId}`, {
-      method: "DELETE",
-    })
-
-    const data = await response.json()
-
-    if (!response.ok) {
-      toast({ title: "Failed to delete event", variant: "destructive" })
-      console.error(data)
-    } else {
-      toast({ title: "Event deleted successfully" })
-      await fetchEvents()
-    }
   }
 
   const deleteImage = async (url: string | undefined) => {
@@ -201,6 +192,25 @@ export function EventManager() {
     }
   }
 
+  const handleDelete = async (event: Event) => {
+
+    if (event.bannerImage){ await deleteImage(event.bannerImage)}
+    if (event.gallery) { await Promise.all(event.gallery.map((img) => deleteImage(img)))}
+
+    const response = await fetch(`/api/events/delete?id=${event.id}`, {
+      method: "DELETE",
+    })
+
+    const data = await response.json()
+
+    if (!response.ok) {
+      toast({ title: "Failed to delete event", variant: "destructive" })
+      console.error(data)
+    } else {
+      toast({ title: "Event deleted successfully" })
+      await fetchEvents()
+    }
+  }
 
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -246,39 +256,26 @@ export function EventManager() {
     }
   }
 
-  const deleteGalleryImage = async (url: string) => {
-    const path = url.split("/").slice(-1)[0]
-
-    const res = await fetch("/api/events/delete-image", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ path }),
-    })
-
-    if (res.ok) {
-      setFormData(prev => ({...prev, gallery: (prev.gallery ?? []).filter(img => img !== url)}))
-      toast({ title: "Image removed" })
-    } else {
-      toast({ title: "Failed to delete image", variant: "destructive" })
-    }
-  }
-
-
   const togglePin = async (eventId: string, currentState: boolean) => {
-    const res = await fetch("/api/events/update", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        id: eventId,
-        updates: { isPinned: !currentState }
-      }),
-    })
-
-    if (res.ok) {
-      toast({ title: "Event pin status updated" })
-      await fetchEvents()
-    } else {
-      toast({ title: "Failed to update pin status", variant: "destructive" })
+    console.log("Entering in togglePin")
+    try {
+      console.log("isPinned: ", currentState)
+      const res = await fetch(`/api/events/update?id=${eventId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          updates: { isPinned: !currentState }
+        }),
+      })
+      console.log("Response: ", res)
+      if (res.ok) {
+        toast({ title: "Event pin status updated" })
+        await fetchEvents()
+      } else {
+        toast({ title: "Failed to update pin status", variant: "destructive" })
+      }
+    } catch (error) {
+      console.error("Failed to update pin status:", error)
     }
   }
 
@@ -320,17 +317,21 @@ export function EventManager() {
                       placeholder="Enter event title"
                     />
                   </div>
-                  {/* Pin to Hero Section */}
-                  <div className="flex items-center gap-2">
-                    <Checkbox
-                      id="pinned"
-                      checked={formData.isPinned}
-                      onCheckedChange={(checked) => setFormData((prev) => ({ ...prev, isPinned: checked as boolean }))}
-                    />
-                    <Label htmlFor="pinned" className="text-sm">
-                      Pin to Hero Section
-                    </Label>
-                  </div>
+                  {!isPast && (
+                    <>
+                      {/* Pin to Hero Section */}
+                      <div className="flex items-center gap-2">
+                        <Checkbox
+                          id="pinned"
+                          checked={formData.isPinned}
+                          onCheckedChange={(checked) => setFormData((prev) => ({ ...prev, isPinned: checked as boolean }))}
+                        />
+                        <Label htmlFor="pinned" className="text-sm">
+                          Pin to Hero Section
+                        </Label>
+                      </div>
+                    </>
+                  )}
                 </div>
 
                 {/* Description */}
@@ -380,71 +381,6 @@ export function EventManager() {
                     onChange={(e) => setFormData((prev) => ({ ...prev, location: e.target.value }))}
                     required
                     placeholder="Where is it held?"
-                  />
-                </div>
-
-                {/* Banner Image */}
-                <div className="space-y-2">
-                  <Label htmlFor="upload">Upload Banner Image</Label>
-                  {formData.bannerImage && (
-                    <div className="relative w-full max-w-sm">
-                      <img
-                        src={formData.bannerImage}
-                        alt="Banner Preview"
-                        className="w-full rounded shadow"
-                      />
-                      <button
-                        type="button"
-                        onClick={async () => {
-                          await deleteImage(formData.bannerImage)
-                          setFormData((prev) => ({ ...prev, bannerImage: "" }))
-                        }}
-                        className="absolute top-2 right-2 bg-white p-1 rounded-full shadow hover:bg-red-100"
-                        title="Delete Image"
-                      >
-                        <Trash2 className="w-5 h-5 text-red-500" />
-                      </button>
-                    </div>
-                  )}
-                  <Input
-                    id="upload"
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageChange}
-                  />
-                </div>
-
-                {/* Gallery Upload */}
-                <div className="space-y-2">
-                  <Label htmlFor="upload">Upload Gallery</Label>
-                  <div className="flex flex-wrap gap-3">
-                    {formData.gallery?.map((img, index) => (
-                      <div key={index} className="relative group">
-                        <img 
-                          src={img}
-                          alt={`Gallery ${index}`}
-                          className="h-24 w-24 object-cover rounded-md" 
-                        />
-                        <button
-                          type="button"
-                          onClick={async () => {
-                            await deleteImage(img)
-                            console.log(img)
-                            setFormData((prev) => ({ ...prev, gallery: prev.gallery?.filter((image) => image !== img)}))
-                          }}
-                          className="absolute top-1 right-1 bg-black bg-opacity-60 p-1 rounded-full hidden group-hover:block"
-                        >
-                          <Trash2 className="w-5 h-5 text-red-500" />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                  <Input
-                    id="upload-gallery"
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    onChange={handleGalleryUpload}
                   />
                 </div>
 
@@ -505,6 +441,37 @@ export function EventManager() {
                   >
                     + Add Stat
                   </Button>
+                </div>
+
+                {/* Banner Image */}
+                <div className="space-y-2">
+                  <Label htmlFor="upload">Upload Banner Image</Label>
+                  {formData.bannerImage && (
+                    <div className="relative w-full max-w-sm">
+                      <img
+                        src={formData.bannerImage}
+                        alt="Banner Preview"
+                        className="w-full rounded shadow"
+                      />
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          await deleteImage(formData.bannerImage)
+                          setFormData((prev) => ({ ...prev, bannerImage: "" }))
+                        }}
+                        className="absolute top-2 right-2 bg-white p-1 rounded-full shadow hover:bg-red-100"
+                        title="Delete Image"
+                      >
+                        <Trash2 className="w-5 h-5 text-red-500" />
+                      </button>
+                    </div>
+                  )}
+                  <Input
+                    id="upload"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                  />
                 </div>
 
                 {isPast && (
@@ -668,6 +635,57 @@ export function EventManager() {
                       </Button>
                     </div>
 
+                    {/* Gallery Upload */}
+                    <div className="space-y-2">
+                      <Label htmlFor="upload">Upload Gallery</Label>
+                      <div className="flex flex-wrap gap-3">
+                        {formData.gallery?.map((img, index) => (
+                          <div key={index} className="relative group">
+                            <img 
+                              src={img}
+                              alt={`Gallery ${index}`}
+                              className="h-24 w-24 object-cover rounded-md" 
+                            />
+                            <button
+                              type="button"
+                              onClick={async () => {
+                                await deleteImage(img)
+                                console.log(img)
+                                setFormData((prev) => ({ ...prev, gallery: prev.gallery?.filter((image) => image !== img)}))
+                              }}
+                              className="absolute top-1 right-1 bg-black bg-opacity-60 p-1 rounded-full hidden group-hover:block"
+                            >
+                              <Trash2 className="w-5 h-5 text-red-500" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                      <Input
+                        id="upload-gallery"
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        onChange={handleGalleryUpload}
+                      />
+                    </div>
+
+                  </>
+                )}
+
+                {!isPast && (
+                  <>
+                    {/* Registration Link */}
+                    <div className="space-y-2">
+                      <Label htmlFor="participants">Registration Link</Label>
+                      <Input
+                        id="registrationLink"
+                        value={formData.registrationLink}
+                        onChange={(e) =>
+                          setFormData((prev) => ({ ...prev, registrationLink: e.target.value }))
+                        }
+                        placeholder="Enter registration link (optional)"
+                      />
+                    </div>
                   </>
                 )}
               </div>
@@ -729,7 +747,7 @@ export function EventManager() {
                 <Button
                   size="sm"
                   variant="outline"
-                  onClick={() => handleDelete(event.id)}
+                  onClick={() => handleDelete(event)}
                   className="text-destructive hover:text-destructive"
                 >
                   <Trash2 className="h-4 w-4" />

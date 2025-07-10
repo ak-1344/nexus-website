@@ -23,6 +23,7 @@ export function HeroSectionRedesigned() {
   const [isMobile, setIsMobile] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [pinnedEvent, setPinnedEvent] = useState<PinnedEvent | null>(null)
+  const [pinnedEvents, setPinnedEvents] = useState<PinnedEvent[]>([])
   const [timeLeft, setTimeLeft] = useState<{
     days: number
     hours: number
@@ -374,6 +375,15 @@ export function HeroSectionRedesigned() {
     }
   }, [])
 
+  const fetchPinnedEvents = async () =>{
+    try {
+      const response = await fetch('api/events?isPinned=TRUE')
+      const res = await response.json()
+      if (response.ok) { setPinnedEvent(res.data)}
+    } catch (error) {
+      console.error("Error fetching pinned events:", error)
+    }
+  }
   // Mock pinned event
   useEffect(() => {
     const mockPinnedEvent: PinnedEvent = {
@@ -384,6 +394,7 @@ export function HeroSectionRedesigned() {
       time: "10:00 AM",
     }
 
+/*     fetchPinnedEvents() */
     const eventDate = new Date(`${mockPinnedEvent.date} ${mockPinnedEvent.time}`)
     if (eventDate > new Date()) {
       setPinnedEvent(mockPinnedEvent)

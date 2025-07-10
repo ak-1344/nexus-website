@@ -15,6 +15,7 @@ interface Event {
   image: string
   status: "past" | "upcoming"
   bannerImage?: string
+  slug: string
 }
 
 interface Magazine {
@@ -113,7 +114,7 @@ export function FeaturedWorkGrid() {
   }, [events])
 
   const EventCard = ({ event }: { event: Event }) => (
-    <Link href={`/events/${event.id}`}>
+    <Link href={`/events/${event.slug}?id=${event.id}`}>
       <Card className="backdrop-panel border-primary/20 glow-hover cursor-pointer mb-4 transition-all duration-300">
         <div className="relative h-32 overflow-hidden rounded-t-lg">
           <Image src={event.bannerImage || "/placeholder.svg"} alt={event.title} fill className="object-cover" />

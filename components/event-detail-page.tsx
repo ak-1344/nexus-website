@@ -20,113 +20,48 @@ interface EventDetail {
   status: "upcoming" | "past"
   participants?: number
   outcomes?: string[]
-  stats?: { label: string; value: string }[]
+  stats?: { 
+    label: string; 
+    value: string 
+  }[]
   gallery?: string[]
   registrationLink?: string
-  resultLinks?: string[]
-  socialPosts?: { platform: string; url: string }[]
+  results?: { 
+    pos: string; 
+    url: string; 
+    name: string 
+  }[]
+  socialPosts?: { 
+    platform: string; 
+    url: string 
+  }[]
+  slug: string
 }
 
 interface EventDetailPageProps {
   eventId: string
+  eventSlug: string
 }
 
-export function EventDetailPage({ eventId }: EventDetailPageProps) {
+export function EventDetailPage({ eventId, eventSlug }: EventDetailPageProps) {
   const [event, setEvent] = useState<EventDetail | null>(null)
   const [selectedImageIndex, setSelectedImageIndex] = useState(0)
   const [isGalleryOpen, setIsGalleryOpen] = useState(false)
 
-  useEffect(() => {
-    // Mock data - in real app, fetch from API based on eventId
-    const mockEvents: { [key: string]: EventDetail } = {
-      "1": {
-        id: "1",
-        title: "Annual Hackathon 2023",
-        date: "2023-11-15",
-        time: "09:00 AM",
-        location: "Computer Science Building, Main Auditorium",
-        description:
-          "Our biggest coding event of the year! A 48-hour marathon where teams of passionate developers, designers, and innovators come together to build solutions that matter. This year's theme focuses on sustainable technology and social impact, challenging participants to create applications that can make a real difference in our communities.\n\nParticipants will have access to mentors from leading tech companies, workshops on cutting-edge technologies, and the opportunity to network with industry professionals. The event features multiple tracks including web development, mobile apps, AI/ML, and hardware hacking.\n\nPrizes include cash awards, internship opportunities, and startup incubation support for the most promising projects.",
-        bannerImage: "/placeholder.svg?height=400&width=800",
-        status: "past",
-        participants: 120,
-        outcomes: [
-          "15 innovative projects developed",
-          "3 startups launched from winning teams",
-          "Over 50 industry connections made",
-          "100% participant satisfaction rate",
-        ],
-        stats: [
-          { label: "Teams", value: "30" },
-          { label: "Hours", value: "48" },
-          { label: "Mentors", value: "12" },
-          { label: "Sponsors", value: "8" },
-        ],
-        gallery: [
-          "/placeholder.svg?height=600&width=800",
-          "/placeholder.svg?height=600&width=800",
-          "/placeholder.svg?height=600&width=800",
-          "/placeholder.svg?height=600&width=800",
-          "/placeholder.svg?height=600&width=800",
-          "/placeholder.svg?height=600&width=800",
-        ],
-        resultLinks: ["Winner Presentations", "Project Showcase", "Mentor Feedback"],
-        socialPosts: [
-          { platform: "Twitter", url: "https://twitter.com/nexusclub/status/123" },
-          { platform: "LinkedIn", url: "https://linkedin.com/posts/nexusclub-hackathon" },
-        ],
-      },
-      "2": {
-        id: "2",
-        title: "Tech Talk: Future of AI",
-        date: "2023-10-20",
-        time: "02:00 PM",
-        location: "Virtual Event",
-        description:
-          "Join us for an enlightening session with industry experts as they discuss the latest developments in artificial intelligence and machine learning. This talk will cover emerging trends, ethical considerations, and the future impact of AI on various industries.\n\nOur speakers include researchers from top universities and engineers from leading AI companies. Topics will include natural language processing, computer vision, autonomous systems, and the societal implications of AI advancement.\n\nThis is a great opportunity for students to learn about career paths in AI and ask questions directly to experts in the field.",
-        bannerImage: "/placeholder.svg?height=400&width=800",
-        status: "past",
-        participants: 85,
-        outcomes: [
-          "Insights into latest AI research",
-          "Career guidance for AI enthusiasts",
-          "Q&A session with industry experts",
-          "Networking opportunities",
-        ],
-        stats: [
-          { label: "Speakers", value: "4" },
-          { label: "Duration", value: "2h" },
-          { label: "Q&As", value: "25" },
-          { label: "Countries", value: "12" },
-        ],
-        gallery: [
-          "/placeholder.svg?height=600&width=800",
-          "/placeholder.svg?height=600&width=800",
-          "/placeholder.svg?height=600&width=800",
-        ],
-        resultLinks: ["Speaker Slides", "Recording", "Resource Links"],
-      },
-      "4": {
-        id: "4",
-        title: "Annual Tech Symposium 2024",
-        date: "2024-12-25",
-        time: "10:00 AM",
-        location: "University Convention Center",
-        description:
-          "Get ready for our most ambitious event yet! The Annual Tech Symposium 2024 will bring together students, industry professionals, and thought leaders for a day of innovation, learning, and networking.\n\nThe symposium will feature keynote speeches from tech industry leaders, panel discussions on emerging technologies, hands-on workshops, and a startup pitch competition. This year's focus areas include artificial intelligence, blockchain technology, sustainable tech solutions, and the future of work.\n\nAttendees will have the opportunity to participate in interactive sessions, visit sponsor booths, and connect with potential employers and collaborators. Don't miss this chance to be part of the tech community's biggest gathering of the year!",
-        bannerImage: "/placeholder.svg?height=400&width=800",
-        status: "upcoming",
-        registrationLink: "https://nexusclub.edu/register/symposium2024",
-        stats: [
-          { label: "Expected Attendees", value: "500+" },
-          { label: "Speakers", value: "15" },
-          { label: "Workshops", value: "8" },
-          { label: "Sponsors", value: "20+" },
-        ],
-      },
-    }
+  const fetchEvent = async () => {
+    console.log("Fetching event with ID:", eventId)
+    const response = await fetch(`/api/events/fetch-event?id=${eventId}`)
+    console.log("Response status:", response)
+    const res = await response.json()
+    if (response.ok) { 
+      setEvent(res.data)
+      console.log("Cur event: ", event)
+    } 
+    else { console.error("Error fetching event:", res.error)}
+  }
 
-    setEvent(mockEvents[eventId] || null)
+  useEffect(() => {
+    if (eventId) {fetchEvent()}
   }, [eventId])
 
   const openGallery = (index: number) => {
@@ -162,6 +97,8 @@ export function EventDetailPage({ eventId }: EventDetailPageProps) {
     )
   }
 
+  const isPast = new Date(`${event.date}T${event.time}`) < new Date()
+
   return (
     <div className="pt-16 min-h-screen">
       {/* Banner Section */}
@@ -171,7 +108,7 @@ export function EventDetailPage({ eventId }: EventDetailPageProps) {
 
         {/* Back Button */}
         <div className="absolute top-4 left-4 z-10">
-          <Link href="/">
+          <Link href={status === "past" ? "/past-events" : "/upcoming"}>
             <Button variant="outline" size="sm" className="backdrop-panel border-primary/30">
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back
@@ -234,7 +171,7 @@ export function EventDetailPage({ eventId }: EventDetailPageProps) {
             </Card>
 
             {/* Outcomes (for past events) */}
-            {event.outcomes && (
+            {event.outcomes && isPast && (
               <Card className="backdrop-panel border-primary/20">
                 <CardContent className="p-6 md:p-8">
                   <h2 className="text-2xl font-bold gradient-text mb-4">Event Outcomes</h2>
@@ -335,17 +272,38 @@ export function EventDetailPage({ eventId }: EventDetailPageProps) {
             )}
 
             {/* Resources/Results */}
-            {event.resultLinks && (
+            {event.results && isPast && (
               <Card className="backdrop-panel border-primary/20">
                 <CardContent className="p-6">
-                  <h3 className="text-lg font-bold gradient-text mb-4">Resources</h3>
-                  <div className="space-y-2">
-                    {event.resultLinks.map((link, index) => (
-                      <Button key={index} variant="outline" className="w-full justify-start" size="sm">
-                        <ExternalLink className="h-4 w-4 mr-2" />
-                        {link}
-                      </Button>
-                    ))}
+                  <h3 className="text-lg font-bold gradient-text mb-4">Results</h3>
+
+                  <div className="w-full overflow-x-auto">
+                    <table className="min-w-full text-sm text-left border-collapse">
+                      <thead>
+                        <tr className="border-b border-primary/20 text-muted-foreground">
+                          <th className="py-2 px-4">Position</th>
+                          <th className="py-2 px-4">Name</th>
+                          <th className="py-2 px-4">Link</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {event.results.map((result, index) => (
+                          <tr key={index} className="border-b border-muted/10">
+                            <td className="py-2 px-4 font-medium">{result.pos}</td>
+                            <td className="py-2 px-4">{result.name}</td>
+                            <td className="py-2 px-4 text-muted-foreground">
+                              {result.url ? (
+                                <a href={result.url} target="_blank" rel="noopener noreferrer" className="text-primary underline">
+                                  View
+                                </a>
+                              ) : (
+                                <span className="italic text-muted-foreground">n/a</span>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
                 </CardContent>
               </Card>

@@ -12,74 +12,25 @@ interface PastEvent {
   id: string
   title: string
   date: string
-  image: string
+  bannerImage: string
   participants?: number
   summary: string
   status: "past"
+  slug: string
 }
 
 export default function PastEventsPage() {
   const [pastEvents, setPastEvents] = useState<PastEvent[]>([])
 
+  const fetchPastEvents = async () => {
+    const response = await fetch("api/events?status=past")
+    const res = await response.json()
+    if (response.ok) { setPastEvents(res.data)} 
+    else { console.error("Error fetching past events:", res.error)}
+  }
+
   useEffect(() => {
-    // Mock data - in real app, fetch from API
-    const mockPastEvents: PastEvent[] = [
-      {
-        id: "1",
-        title: "Annual Hackathon 2023",
-        date: "2023-11-15",
-        image: "/placeholder.svg?height=300&width=400",
-        participants: 120,
-        summary: "A 48-hour coding marathon where teams built innovative solutions to real-world problems.",
-        status: "past",
-      },
-      {
-        id: "2",
-        title: "Tech Talk: Future of AI",
-        date: "2023-10-20",
-        image: "/placeholder.svg?height=300&width=400",
-        participants: 85,
-        summary: "Industry experts shared insights on the latest developments in artificial intelligence.",
-        status: "past",
-      },
-      {
-        id: "3",
-        title: "Web Development Bootcamp",
-        date: "2023-09-10",
-        image: "/placeholder.svg?height=300&width=400",
-        participants: 60,
-        summary: "A comprehensive 3-day workshop covering modern web development technologies.",
-        status: "past",
-      },
-      {
-        id: "6",
-        title: "Cybersecurity Workshop",
-        date: "2023-08-15",
-        image: "/placeholder.svg?height=300&width=400",
-        participants: 45,
-        summary: "Learn about ethical hacking and cybersecurity best practices.",
-        status: "past",
-      },
-      {
-        id: "7",
-        title: "Mobile App Development",
-        date: "2023-07-20",
-        image: "/placeholder.svg?height=300&width=400",
-        participants: 55,
-        summary: "Build your first mobile app using React Native and Flutter.",
-        status: "past",
-      },
-      {
-        id: "8",
-        title: "Data Science Symposium",
-        date: "2023-06-10",
-        image: "/placeholder.svg?height=300&width=400",
-        participants: 90,
-        summary: "Explore the world of data science and machine learning applications.",
-        status: "past",
-      },
-    ]
-    setPastEvents(mockPastEvents)
+    fetchPastEvents()
   }, [])
 
   return (
@@ -102,11 +53,11 @@ export default function PastEventsPage() {
         {/* Events Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {pastEvents.map((event) => (
-            <Link key={event.id} href={`/events/${event.id}`}>
+            <Link key={event.id} href={`/events/${event.slug}?id=${event.id}`}>
               <Card className="backdrop-panel border-primary/20 glow-hover cursor-pointer transition-all duration-300 h-full">
                 <div className="relative h-48 overflow-hidden rounded-t-lg">
                   <Image
-                    src={event.image || "/placeholder.svg"}
+                    src={event.bannerImage || "/placeholder.svg"}
                     alt={event.title}
                     fill
                     className="object-cover group-hover:scale-105 transition-transform duration-300"

@@ -34,21 +34,25 @@ interface GalleryItem {
 }
 
 export function FeaturedWorkGrid() {
-  const [events, setEvents] = useState<Event[]>([])
   const [pastEvents, setPastEvents] = useState<Event[]>([])
   const [upcomingEvents, setUpcomingEvents] = useState<Event[]>([])
   const [magazines, setMagazines] = useState<Magazine[]>([])
   const [galleries, setGalleries] = useState<GalleryItem[]>([])
   
   const fetchEvents = async () => {
-    const response = await fetch("/api/events")
+    const response = await fetch("/api/events/")
+    //console.log("request submitted")
     const res = await response.json()
-
-    if (response.ok) {
-      setEvents(res.data)
-    } else {
-      console.error("Error fetching events:", res.error)
-    }
+    //console.log("response: ", response)
+    //console.log("result: ", res)
+    if (response.ok) { 
+      //console.log("res.data: ", res.data)
+      const data: Event[] = res.data
+      setPastEvents(data.filter(event => event.status === "past"))
+      setUpcomingEvents(data.filter(event => event.status === "upcoming"))
+      //console.log("Data has been set")
+    } 
+    else { console.error("Error fetching events:", res.error)}
   }
 
   useEffect(() => {
@@ -76,7 +80,6 @@ export function FeaturedWorkGrid() {
         status: "past",
       },
     ]) */
-
 /*     setUpcomingEvents([
       {
         id: "4",
@@ -93,10 +96,10 @@ export function FeaturedWorkGrid() {
         status: "upcoming",
       },
     ]) */
-
+    //console.log("Before: ", events)
     fetchEvents()
-    setPastEvents(events.filter(event => event.status === "past"))
-    setUpcomingEvents(events.filter(event => event.status === "upcoming"))
+    //const interval = setInterval(fetchEvents, 5000)
+    //console.log("After: ", events)
 
     // Mock data
     setMagazines([
@@ -111,7 +114,8 @@ export function FeaturedWorkGrid() {
       { id: "2", title: "Tech Talk Series", coverImage: "/placeholder.svg?height=150&width=200", photoCount: 28 },
       { id: "3", title: "Workshop Sessions", coverImage: "/placeholder.svg?height=150&width=200", photoCount: 32 },
     ])
-  }, [events])
+    //return () => clearInterval(interval)
+  }, [])
 
   const EventCard = ({ event }: { event: Event }) => (
     <Link href={`/events/${event.slug}?id=${event.id}`}>
@@ -141,7 +145,7 @@ export function FeaturedWorkGrid() {
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-2xl font-bold gradient-text">🕰 Past Events</h2>
               <Button variant="ghost" size="sm" className="text-primary hover:text-primary/80" asChild>
-                <Link href="/past-events">
+                <Link href="/events/past-events">
                   View All <ArrowRight className="h-4 w-4 ml-1" />
                 </Link>
               </Button>
@@ -158,7 +162,7 @@ export function FeaturedWorkGrid() {
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-2xl font-bold gradient-text">🔮 What's Coming Up?</h2>
               <Button variant="ghost" size="sm" className="text-primary hover:text-primary/80" asChild>
-                <Link href="/upcoming">
+                <Link href="/events/upcoming">
                   View All <ArrowRight className="h-4 w-4 ml-1" />
                 </Link>
               </Button>

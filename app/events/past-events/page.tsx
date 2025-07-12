@@ -23,7 +23,7 @@ export default function PastEventsPage() {
   const [pastEvents, setPastEvents] = useState<PastEvent[]>([])
 
   const fetchPastEvents = async () => {
-    const response = await fetch("api/events?status=past")
+    const response = await fetch("../api/events?status=past")
     const res = await response.json()
     if (response.ok) { setPastEvents(res.data)} 
     else { console.error("Error fetching past events:", res.error)}
@@ -37,14 +37,18 @@ export default function PastEventsPage() {
     <div className="pt-16 min-h-screen">
       <div className="container mx-auto px-4 py-8 lg:py-12">
         {/* Header */}
-        <div className="flex items-center gap-4 mb-8">
-          <Link href="/">
-            <Button variant="outline" size="sm" className="backdrop-panel border-primary/30">
+        <div className="relative mb-8">
+          <Link href="/events">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="backdrop-panel border-primary/30 absolute left-0 top-0"
+            >
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Home
             </Button>
           </Link>
-          <div>
+          <div className="text-center">
             <h1 className="text-3xl lg:text-4xl font-bold gradient-text">Past Events</h1>
             <p className="text-gray-300 mt-2">Explore our successful events and their impact</p>
           </div>

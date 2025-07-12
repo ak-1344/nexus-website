@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Calendar, Clock, Hexagon, Sparkles } from "lucide-react"
 import { MainScene } from "@/components/main-scene"
+import Link from 'next/link'
 
 interface PinnedEvent {
   id: string
@@ -13,6 +14,7 @@ interface PinnedEvent {
   description: string
   date: string
   time: string
+  slug: string
 }
 
 export function HeroSectionRedesigned() {
@@ -379,52 +381,74 @@ export function HeroSectionRedesigned() {
     try {
       const response = await fetch('api/events?isPinned=TRUE')
       const res = await response.json()
-      if (response.ok) { setPinnedEvent(res.data)}
+      const requiredData: PinnedEvent[] = res.data
+      if (response.ok) { 
+        //console.log("Required Data: ", requiredData[0])
+        //setPinnedEvent(res.data[0])
+        setPinnedEvents(requiredData)
+        //console.log(pinnedEvent)
+      }
     } catch (error) {
       console.error("Error fetching pinned events:", error)
     }
   }
   // Mock pinned event
   useEffect(() => {
-    const mockPinnedEvent: PinnedEvent = {
+/*     const mockPinnedEvent: PinnedEvent = {
       id: "1",
       title: "Annual Tech Symposium 2024",
       description: "Join us for our biggest technical event featuring industry experts and innovation showcases.",
       date: "2024-12-25",
       time: "10:00 AM",
-    }
+    } */
 
-/*     fetchPinnedEvents() */
-    const eventDate = new Date(`${mockPinnedEvent.date} ${mockPinnedEvent.time}`)
+    fetchPinnedEvents()
+    //console.log("In useEffect: ", pinnedEvent)
+/*     const eventDate = new Date(`${mockPinnedEvent.date} ${mockPinnedEvent.time}`)
     if (eventDate > new Date()) {
       setPinnedEvent(mockPinnedEvent)
-    }
+    } */
   }, [])
 
   // Countdown timer
-  useEffect(() => {
+/*   useEffect(() => {
+    //console.log("Inside countdown useEffect: ", pinnedEvent)
     if (!pinnedEvent) return
 
+    //console.log("Countdown useEffect: ")
     const timer = setInterval(() => {
-      const eventDate = new Date(`${pinnedEvent.date} ${pinnedEvent.time}`)
+      const eventDate = new Date(`${pinnedEvent.date}T${pinnedEvent.time}:00`)
+      console.log("event date:", eventDate)
       const now = new Date()
+      console.log("now: ", now)
       const difference = eventDate.getTime() - now.getTime()
+      console.log("time difference: ", difference)
 
       if (difference > 0) {
+        console.log("days:", Math.floor(difference / (1000 * 60 * 60 * 24)))
+        console.log("hours:", Math.floor((difference / (1000 * 60 * 60)) % 24))
+        console.log("mins:", Math.floor((difference / 1000 / 60) % 60))
+        console.log("seconds:", Math.floor((difference / 1000) % 60))
         setTimeLeft({
           days: Math.floor(difference / (1000 * 60 * 60 * 24)),
           hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
           minutes: Math.floor((difference / 1000 / 60) % 60),
           seconds: Math.floor((difference / 1000) % 60),
         })
+        //console.log("Time left: ", timeLeft)
       } else {
+        console.log("Difference less than 0")
         setTimeLeft(null)
         setPinnedEvent(null)
       }
     }, 1000)
-
-    return () => clearInterval(timer)
-  }, [pinnedEvent])
+    //console.log("Timer: ", timer)
+    //console.log("Time left: ", timeLeft)
+    return () => {
+      clearInterval(timer)
+      console.log("Executed clearInterval")
+    }
+  }, [pinnedEvent]) */
 
   // Generate particles in useEffect
   useEffect(() => {
@@ -446,6 +470,7 @@ export function HeroSectionRedesigned() {
     return () => clearTimeout(timer)
   }, [])
 
+  //console.log("isMobile: ", isMobile)
   return (
     <motion.div
       ref={containerRef}
@@ -538,40 +563,45 @@ export function HeroSectionRedesigned() {
           )}
         </motion.div>
 
-        {pinnedEvent && (
-          <motion.div
-            initial={{ y: 50, opacity: 0 }}
-            animate={!isLoading ? { y: 0, opacity: 1 } : { y: 50, opacity: 0 }}
-            transition={{ delay: 0.8, duration: 0.8 }}
-            className={`absolute ${isMobile ? 'bottom-4' : 'bottom-8'} left-1/2 -translate-x-1/2 w-full max-w-md px-4`}
-          >
-            <motion.div
-              animate={isMobile ? {
-                scale: [1, 1.02, 1],
-                y: [0, -5, 0],
-              } : {}}
-              transition={{
-                duration: 3,
-                repeat: Infinity,
-                ease: "easeInOut",
-              }}
-              className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20"
-            >
-              <h3 className="text-xl font-semibold text-white mb-2">{pinnedEvent.title}</h3>
-              <p className="text-white/80 mb-4">{pinnedEvent.description}</p>
-              <div className="flex items-center gap-4 text-white/60">
-                <div className="flex items-center gap-2">
-                  <Calendar className="w-4 h-4" />
-                  <span>{pinnedEvent.date}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Clock className="w-4 h-4" />
-                  <span>{pinnedEvent.time}</span>
-                </div>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
+        <div className="fixed right-4 bottom-4 space-y-4">
+          {pinnedEvents.map((event, index) => (
+            <Link key={event.id} href={`/events/${event.slug}?id=${event.id}`}>
+              <motion.div
+                key={index}
+                initial={{ y: 50, opacity: 0 }}
+                animate={!isLoading ? { y: 0, opacity: 1 } : { y: 50, opacity: 0 }}
+                transition={{ delay: 0.8 + index * 0.1, duration: 0.8 }}
+                className={`${isMobile ? 'bottom-4' : 'bottom-8'} max-w-md px-4 cursor-pointer hover:opacity-90`}
+              >
+                <motion.div
+                  animate={isMobile ? {
+                    scale: [1, 1.02, 1],
+                    y: [0, -5, 0],
+                  } : {}}
+                  transition={{
+                    duration: 3,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                  }}
+                  className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20"
+                >
+                  <h3 className="text-xl font-semibold text-white mb-2">{event.title}</h3>
+                  <p className="text-white/80 mb-4 truncate">{event.description}</p>
+                  <div className="flex items-center gap-4 text-white/60">
+                    <div className="flex items-center gap-2">
+                      <Calendar className="w-4 h-4" />
+                      <span>{event.date}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Clock className="w-4 h-4" />
+                      <span>{event.time}</span>
+                    </div>
+                  </div>
+                </motion.div>
+              </motion.div>
+            </Link>
+          ))}
+        </div>
       </motion.div>
 
       <motion.div

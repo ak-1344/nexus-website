@@ -119,7 +119,7 @@ export function GalleryEventPage({ galleryId }: GalleryEventPageProps) {
           },
         ],
       },
-    }
+    } 
 
     setGallery(mockGalleries[galleryId] || null)
   }, [galleryId])

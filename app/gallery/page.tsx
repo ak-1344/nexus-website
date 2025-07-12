@@ -11,7 +11,7 @@ interface GalleryEvent {
   id: string
   title: string
   date: string
-  bannerImage: string
+  bannerImage?: string
   gallery?: string[]
 }
 
@@ -25,6 +25,7 @@ export default function GalleryPage() {
       const response = await fetch('api/events')
       const res = await response.json()
       if (response.ok) { 
+        console.log("Fetched gallery events:", res.data)
         setGalleryEvents(res.data)
       }
     } catch (error) {
@@ -34,7 +35,8 @@ export default function GalleryPage() {
 
   useEffect(() => {
     // Mock data - in real app, fetch from API
-    const mockGalleryEvents: GalleryEvent[] = [
+    // Fixed via performing API calls
+/*     const mockGalleryEvents: GalleryEvent[] = [
       {
         id: "1",
         title: "Annual Hackathon 2023",
@@ -71,13 +73,15 @@ export default function GalleryPage() {
           "/placeholder.svg?height=600&width=800",
         ],
       },
-    ]
+    ] */
     fetchEvents()
+    console.log("Updated gallery events:", galleryEvents)
     //setGalleryEvents(mockGalleryEvents)
   }, [])
 
   const openLightbox = (event: GalleryEvent, imageIndex = 0) => {
     setSelectedEvent(event)
+    console.log("Opening lightbox for event:", selectedEvent)
     setCurrentImageIndex(imageIndex)
   }
 
@@ -88,13 +92,19 @@ export default function GalleryPage() {
 
   const nextImage = () => {
     if (selectedEvent) {
-      setCurrentImageIndex((prev) => (prev === selectedEvent.gallery.length - 1 ? 0 : prev + 1))
+      setCurrentImageIndex((prev) => {
+        const galleryLength = selectedEvent.gallery?.length ?? 0
+        return prev === galleryLength - 1 ? 0 : prev + 1
+      })
     }
   }
 
   const prevImage = () => {
     if (selectedEvent) {
-      setCurrentImageIndex((prev) => (prev === 0 ? selectedEvent.gallery.length - 1 : prev - 1))
+      setCurrentImageIndex((prev) => {
+        const galleryLength = selectedEvent.gallery?.length ?? 0
+        return prev === 0 ? galleryLength - 1 : prev - 1
+      })
     }
   }
 
@@ -114,7 +124,13 @@ export default function GalleryPage() {
               key={event.id}
               className="group hover:shadow-lg transition-all duration-300 border-border/50 hover:border-border overflow-hidden"
             >
-              <div className="relative h-64 overflow-hidden cursor-pointer" onClick={() => openLightbox(event)}>
+              <div 
+                className="relative h-64 overflow-hidden cursor-pointer" 
+                onClick={() => {
+                  openLightbox(event)
+                  console.log("Clicked on event:", event)
+                }}
+              >
                 <Image
                   src={event.bannerImage || "/placeholder.svg"}
                   alt={event.title}
@@ -124,7 +140,7 @@ export default function GalleryPage() {
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
                   <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                     <Button variant="secondary" size="sm">
-                      View Gallery ({event.gallery.length} photos)
+                      View Gallery ({event.gallery?.length} photos)
                     </Button>
                   </div>
                 </div>
@@ -144,7 +160,10 @@ export default function GalleryPage() {
         </div>
 
         {/* Lightbox Modal */}
-        <Dialog open={!!selectedEvent} onOpenChange={(open) => !open && closeLightbox()}>
+        <Dialog 
+          open={!!selectedEvent} 
+          onOpenChange={(open) => !open && closeLightbox()}
+        >
           <DialogContent className="max-w-4xl w-full h-[80vh] p-0">
             {selectedEvent && (
               <div className="relative w-full h-full bg-black rounded-lg overflow-hidden">
@@ -159,14 +178,14 @@ export default function GalleryPage() {
 
                 <div className="relative w-full h-full">
                   <Image
-                    src={selectedEvent.gallery[currentImageIndex] || "/placeholder.svg"}
+                    src={selectedEvent.gallery?.[currentImageIndex] || "/placeholder.svg"}
                     alt={`${selectedEvent.title} - Image ${currentImageIndex + 1}`}
                     fill
                     className="object-contain"
                   />
                 </div>
 
-                {selectedEvent.gallery.length > 1 && (
+                {(selectedEvent.gallery?.length ?? 0) > 0 && (
                   <>
                     <Button
                       variant="ghost"
@@ -186,7 +205,7 @@ export default function GalleryPage() {
                     </Button>
 
                     <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-white text-sm bg-black/50 px-3 py-1 rounded">
-                      {currentImageIndex + 1} / {selectedEvent.gallery.length}
+                      {currentImageIndex + 1} / {selectedEvent.gallery?.length}
                     </div>
                   </>
                 )}

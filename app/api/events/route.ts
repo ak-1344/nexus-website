@@ -5,13 +5,13 @@ export async function GET(req: Request) {
   const { searchParams } = new URL(req.url)
   const status = searchParams.get("status")
   const isPinned = searchParams.get("isPinned")
-  console.log("Pinned: ", isPinned)
+  //console.log("Pinned: ", isPinned)
   let query = supabase.from("events").select("*")
   if (status) { query = query.eq("status", status)}
   if (isPinned) { query = query.eq("isPinned", true)}
 
   const { data, error } = await query
-
+  console.log("data: ", data)
   if (error) { return NextResponse.json({ error: error.message }, { status: 500 })}
   return NextResponse.json({ data }, { status: 200 })
 }

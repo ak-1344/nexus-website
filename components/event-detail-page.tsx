@@ -108,7 +108,7 @@ export function EventDetailPage({ eventId, eventSlug }: EventDetailPageProps) {
 
         {/* Back Button */}
         <div className="absolute top-4 left-4 z-10">
-          <Link href={status === "past" ? "/past-events" : "/upcoming"}>
+          <Link href={event.status === "past" ? "/events/past-events" : "/events/upcoming"}>
             <Button variant="outline" size="sm" className="backdrop-panel border-primary/30">
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back

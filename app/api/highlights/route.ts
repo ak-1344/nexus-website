@@ -1,29 +1,21 @@
 import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabaseServer";
 
-export async function GET(req: Request) {
-  const { searchParams } = new URL(req.url);
-  const status = searchParams.get("status");
-  const isPinned = searchParams.get("isPinned");
-
-  let query = supabase.from("events").select("*");
-  if (status) query = query.eq("status", status);
-  if (isPinned) query = query.eq("isPinned", true);
-
-  const { data, error } = await query;
+export async function GET() {
+  const { data, error } = await supabase.from("highlights").select("*");
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  return NextResponse.json({ data });
+  return NextResponse.json({ highlights: data });
 }
 
 export async function POST(req: Request) {
   const body = await req.json();
-  const { title, status, isPinned } = body;
+  const { title, image, description } = body;
 
-  const { data, error } = await supabase.from("events").insert([{ title, status, isPinned }]);
+  const { data, error } = await supabase.from("highlights").insert([{ title, image, description }]);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  return NextResponse.json({ message: "Event created", data }, { status: 201 });
+  return NextResponse.json({ message: "Highlight added", data }, { status: 201 });
 }
 
 export async function PUT(req: Request) {
@@ -33,10 +25,10 @@ export async function PUT(req: Request) {
 
   if (!id) return NextResponse.json({ error: "Missing id" }, { status: 400 });
 
-  const { data, error } = await supabase.from("events").update(body).eq("id", id);
+  const { data, error } = await supabase.from("highlights").update(body).eq("id", id);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  return NextResponse.json({ message: "Event updated", data });
+  return NextResponse.json({ message: "Highlight updated", data });
 }
 
 export async function DELETE(req: Request) {
@@ -45,8 +37,8 @@ export async function DELETE(req: Request) {
 
   if (!id) return NextResponse.json({ error: "Missing id" }, { status: 400 });
 
-  const { data, error } = await supabase.from("events").delete().eq("id", id);
+  const { data, error } = await supabase.from("highlights").delete().eq("id", id);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  return NextResponse.json({ message: "Event deleted", data });
+  return NextResponse.json({ message: "Highlight deleted", data });
 }

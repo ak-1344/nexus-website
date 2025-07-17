@@ -19,38 +19,82 @@ import {
 import { useToast } from "@/hooks/use-toast"
 import { Plus, Edit, Trash2, User } from "lucide-react"
 import Image from "next/image"
+import { previousDay } from "date-fns"
 
 interface TeamMember {
   id: string
   name: string
   role: string
+  department: string
   year: string
   photo: string
   bio?: string
-  linkedin?: string
-  github?: string
-  email?: string
+  socialMedia?: { platform: string; url: string} []
 }
+
+// API request functions
+async function fetchTeamMembers() {
+  const res = await fetch("/api/teams")
+  if (!res.ok) throw new Error("Failed to fetch team members")
+  const { teams } = await res.json()
+  return teams
+}
+
+async function addTeamMember(member: TeamMember) {
+  const res = await fetch("/api/teams", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(member),
+  })
+  if (!res.ok) throw new Error("Failed to add team member")
+  return await res.json()
+}
+
+async function updateTeamMember(id: string, member: Partial<TeamMember>) {
+  const res = await fetch(`/api/teams?id=${id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(member),
+  })
+  if (!res.ok) throw new Error("Failed to update team member")
+  return await res.json()
+}
+
+async function deleteTeamMember(id: string) {
+  const res = await fetch(`/api/teams?id=${id}`, {
+    method: "DELETE",
+  })
+  if (!res.ok) throw new Error("Failed to delete team member")
+  return await res.json()
+}
+
 
 export function TeamManager() {
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([])
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [editingMember, setEditingMember] = useState<TeamMember | null>(null)
   const [selectedYear, setSelectedYear] = useState("2024-25")
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    name: string
+    role: string
+    department: string
+    year: string
+    photo: string
+    bio: string
+    socialMedia: { platform: string; url: string }[]
+  }>({
     name: "",
     role: "",
+    department: "",
     year: "2024-25",
     photo: "",
     bio: "",
-    linkedin: "",
-    github: "",
-    email: "",
+    socialMedia: []
   })
   const { toast } = useToast()
 
   const availableYears = ["2024-25", "2023-24", "2022-23"]
-  const availableRoles = [
+/*   const availableRoles = [
     "President",
     "Vice President",
     "Technical Lead",
@@ -59,11 +103,22 @@ export function TeamManager() {
     "Treasurer",
     "Secretary",
     "Member",
+  ] */
+
+  const availableDepts = [
+    "Board Members",
+    "Management",
+    "Tech Leads",
+    "Frontend",
+    "Backend",
+    "AI/ML",
+    "Design Team",
+    "Social Media Team"
   ]
 
   useEffect(() => {
     // Mock data - in real app, fetch from API
-    const mockTeamMembers: TeamMember[] = [
+/*     const mockTeamMembers: TeamMember[] = [
       {
         id: "1",
         name: "Alex Johnson",
@@ -71,9 +126,7 @@ export function TeamManager() {
         year: "2024-25",
         photo: "/placeholder.svg?height=300&width=300",
         bio: "Computer Science senior passionate about AI and machine learning.",
-        linkedin: "https://linkedin.com/in/alexjohnson",
-        github: "https://github.com/alexjohnson",
-        email: "alex@nexusclub.edu",
+        department: ""
       },
       {
         id: "2",
@@ -82,45 +135,48 @@ export function TeamManager() {
         year: "2024-25",
         photo: "/placeholder.svg?height=300&width=300",
         bio: "Software Engineering student with expertise in full-stack development.",
-        linkedin: "https://linkedin.com/in/sarahchen",
-        github: "https://github.com/sarahchen",
+        department: ""
       },
     ]
-    setTeamMembers(mockTeamMembers)
+    setTeamMembers(mockTeamMembers) */
+    fetchTeamMembers()
+    .then(setTeamMembers)
+    .catch((err) => toast({ title: "Error fetching team members", description: err.message}))
   }, [])
 
   const filteredMembers = teamMembers.filter((member) => member.year === selectedYear)
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (editingMember) {
-      setTeamMembers((prev) =>
-        prev.map((member) => (member.id === editingMember.id ? { ...member, ...formData } : member)),
-      )
-      toast({ title: "Team member updated successfully" })
-    } else {
-      const newMember: TeamMember = {
-        id: Date.now().toString(),
-        ...formData,
+    try {
+      if (editingMember) {
+        await updateTeamMember(editingMember.id, formData)
+        toast({ title: "Team member updated successfully" })
+      } else {
+        await addTeamMember({
+          id: crypto.randomUUID(),
+          ...formData})
+        toast({ title: "Team member added successfully" })
       }
-      setTeamMembers((prev) => [...prev, newMember])
-      toast({ title: "Team member added successfully" })
+      const updatedMembers = await fetchTeamMembers()
+      setTeamMembers(updatedMembers)
+      resetForm()
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message})
+      console.error(err.message)
     }
-
-    resetForm()
   }
 
   const resetForm = () => {
     setFormData({
       name: "",
+      department: "",
       role: "",
       year: "2024-25",
       photo: "",
       bio: "",
-      linkedin: "",
-      github: "",
-      email: "",
+      socialMedia: [],
     })
     setEditingMember(null)
     setIsDialogOpen(false)
@@ -131,19 +187,60 @@ export function TeamManager() {
     setFormData({
       name: member.name,
       role: member.role,
+      department: member.department,
       year: member.year,
       photo: member.photo,
       bio: member.bio || "",
-      linkedin: member.linkedin || "",
-      github: member.github || "",
-      email: member.email || "",
+      socialMedia: member.socialMedia ?? [],
     })
     setIsDialogOpen(true)
   }
 
-  const handleDelete = (memberId: string) => {
-    setTeamMembers((prev) => prev.filter((member) => member.id !== memberId))
-    toast({ title: "Team member removed successfully" })
+  const deleteImage = async (url: string | undefined) => {
+    if (!url) return
+    const filePath = url.split("/").pop()
+    try {
+      await fetch(`/api/teams/delete-image?file=${filePath}`, {
+        method: "DELETE",
+      })
+    } catch (err) {
+      console.error("Failed to delete image", err)
+    }
+  }
+
+  const handleDelete = async (memberId: string) => {
+    try {
+      await deleteTeamMember(memberId)
+      toast({ title: "Team member removed successfully" })
+      const updatedMembers = await fetchTeamMembers()
+      setTeamMembers(updatedMembers)
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message})
+      console.error(err.message)
+    }
+  }
+
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    await deleteImage(formData.photo)
+
+    const formDataUpload = new FormData()
+    formDataUpload.append("file", file)
+    try {
+      const response = await fetch("/api/teams/upload-image", {
+        method: "POST",
+        body: formDataUpload,
+      })
+      const data = await response.json()
+      if (data.url) {
+        setFormData((prev) => ({ ...prev, photo: data.url }))
+      }
+    } catch (error) {
+      console.error("Image upload failed:", error)
+      toast({ title: "Failed to upload image", variant: "destructive" })
+    }    
   }
 
   return (
@@ -173,113 +270,178 @@ export function TeamManager() {
                 Add Member
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl">
+            <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col">
               <DialogHeader>
                 <DialogTitle>{editingMember ? "Edit Team Member" : "Add Team Member"}</DialogTitle>
                 <DialogDescription>
                   {editingMember ? "Update member details" : "Add a new member to the core team"}
                 </DialogDescription>
               </DialogHeader>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="name">Name *</Label>
-                    <Input
-                      id="name"
-                      value={formData.name}
-                      onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
-                      required
-                      placeholder="Full name"
-                    />
+              <form onSubmit={handleSubmit} className="flex flex-col flex-grow overflow-hidden">
+                <div className="space-y-4 overflow-y-auto pr-4 pl-2 scrollbar-gutter-stable custom-scroll flex-grow">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="name">Name *</Label>
+                      <Input
+                        id="name"
+                        value={formData.name}
+                        onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
+                        required
+                        placeholder="Full name"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="department">Department *</Label>
+                      <Select
+                        value={formData.department}
+                        onValueChange={(value) => setFormData((prev) => ({ ...prev, department: value }))}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select department" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {availableDepts.map((department) => (
+                            <SelectItem key={department} value={department}>
+                              {department}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="year">Year *</Label>
+                      <Select
+                        value={formData.year}
+                        onValueChange={(value) => setFormData((prev) => ({ ...prev, year: value }))}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {availableYears.map((year) => (
+                            <SelectItem key={year} value={year}>
+                              {year}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="photo">Photo URL</Label>
+                      {formData.photo && (
+                        <div className="relative w-full max-w-sm">
+                          <img
+                            src={formData.photo}
+                            alt="Photo Preview"
+                            className="w-full rounded shadow"
+                          />
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              await deleteImage(formData.photo)
+                              setFormData((prev) => ({ ...prev, photo: ""}))
+                            }}
+                          >
+                            <Trash2 className="w-5 h-5 text-red-500" />
+                          </button>
+                        </div>
+                      )}
+                      <Input
+                        id="photo"
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageChange}
+                      />
+                    </div>
+
+                  </div>
+
                   <div className="space-y-2">
                     <Label htmlFor="role">Role *</Label>
-                    <Select
+                    <Input
+                      id="role"
                       value={formData.role}
-                      onValueChange={(value) => setFormData((prev) => ({ ...prev, role: value }))}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select role" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {availableRoles.map((role) => (
-                          <SelectItem key={role} value={role}>
-                            {role}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                      onChange={(e) => setFormData((prev) => ({ ...prev, role: e.target.value }))}
+                      placeholder="Role in department"
+                    />
                   </div>
-                </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="year">Year *</Label>
-                    <Select
-                      value={formData.year}
-                      onValueChange={(value) => setFormData((prev) => ({ ...prev, year: value }))}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {availableYears.map((year) => (
-                          <SelectItem key={year} value={year}>
-                            {year}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="photo">Photo URL</Label>
+                    <Label htmlFor="bio">Bio</Label>
                     <Input
-                      id="photo"
-                      value={formData.photo}
-                      onChange={(e) => setFormData((prev) => ({ ...prev, photo: e.target.value }))}
-                      placeholder="https://example.com/photo.jpg"
+                      id="bio"
+                      value={formData.bio}
+                      onChange={(e) => setFormData((prev) => ({ ...prev, bio: e.target.value }))}
+                      placeholder="Short bio or description"
                     />
                   </div>
-                </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="bio">Bio</Label>
-                  <Input
-                    id="bio"
-                    value={formData.bio}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, bio: e.target.value }))}
-                    placeholder="Short bio or description"
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="linkedin">LinkedIn</Label>
-                    <Input
-                      id="linkedin"
-                      value={formData.linkedin}
-                      onChange={(e) => setFormData((prev) => ({ ...prev, linkedin: e.target.value }))}
-                      placeholder="LinkedIn profile URL"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="github">GitHub</Label>
-                    <Input
-                      id="github"
-                      value={formData.github}
-                      onChange={(e) => setFormData((prev) => ({ ...prev, github: e.target.value }))}
-                      placeholder="GitHub profile URL"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      value={formData.email}
-                      onChange={(e) => setFormData((prev) => ({ ...prev, email: e.target.value }))}
-                      placeholder="Email address"
-                    />
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="linkedin">LinkedIn</Label>
+                      <Input
+                        id="linkedin"
+                        value={formData.socialMedia.find(sm => sm.platform === "LinkedIn")?.url || ""}
+                        onChange={(e) => {
+                          const url = e.target.value
+                          setFormData((prev) => {
+                            const others = prev.socialMedia.filter(sm => sm.platform !== "LinkedIn")
+                            return {
+                              ...prev,
+                              socialMedia: url 
+                                ? [...others, {platform: "LinkedIn", url: url}]
+                                : others,
+                            }
+                          })
+                        }}
+                        placeholder="LinkedIn profile URL"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="github">GitHub</Label>
+                      <Input
+                        id="github"
+                        value={formData.socialMedia.find(sm => sm.platform === "GitHub")?.url || ""}
+                        onChange={(e) => {
+                          const url = e.target.value
+                          setFormData((prev) => {
+                            const others = prev.socialMedia.filter(sm => sm.platform !== "GitHub")
+                            return {
+                              ...prev,
+                              socialMedia: url 
+                                ? [...others, {platform: "GitHub", url: url}]
+                                : others,
+                            }
+                          })
+                        }}
+                        placeholder="GitHub profile URL"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="email">Email</Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        value={formData.socialMedia.find(sm => sm.platform === "Email")?.url || ""}
+                        onChange={(e) => {
+                          const url = e.target.value
+                          setFormData((prev) => {
+                            const others = prev.socialMedia.filter(sm => sm.platform !== "Email")
+                            return {
+                              ...prev,
+                              socialMedia: url 
+                                ? [...others, {platform: "Email", url: url}]
+                                : others,
+                            }
+                          })
+                        }}
+                        placeholder="Email address"
+                      />
+                    </div>
                   </div>
                 </div>
 

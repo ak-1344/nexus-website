@@ -15,7 +15,7 @@ const images = [
     title: "Web Development"
   },
   {
-    src: "/images/tech3.jpg",
+    src: "/images/tech3.jpeg",
     alt: "Technology 3",
     title: "Mobile Apps"
   },

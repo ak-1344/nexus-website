@@ -25,7 +25,7 @@ interface Department {
   name: string
   icon: React.ReactNode
   color: string
-  lead?: TeamMember
+  leads: TeamMember[]
   members: TeamMember[]
   subdepartments?: Department[]
 }
@@ -84,12 +84,13 @@ export function CoreTeamTreeRedesigned() {
           name: deptName,
           icon: departmentIcons[deptName] || <Briefcase className="h-6 w-6" />,
           color: departmentColors[deptName] || "primary",
+          leads: [],
           members: [],
         }
       }
       // If member is a lead, set as lead, else add to members
       if (/lead|president|head|secretary/i.test(member.role)) {
-        deptMap[deptName].lead = member
+        deptMap[deptName].leads.push(member)
       } else {
         deptMap[deptName].members.push(member)
       }
@@ -145,7 +146,7 @@ export function CoreTeamTreeRedesigned() {
         <div className="flex justify-center mb-4">{department.icon}</div>
         <h3 className="font-bold text-white text-lg mb-2">{department.name}</h3>
         <p className="text-xs text-gray-400">
-          {department.members.length + (department.lead ? 1 : 0)} members
+          {department.members.length + department.leads.length} members
         </p>
       </CardContent>
     </Card>
@@ -257,14 +258,17 @@ export function CoreTeamTreeRedesigned() {
                 {/* Scrollable Content */}
                 <div className="flex-1 overflow-y-auto custom-scrollbar mt-4 space-y-6">
                   {/* Department Lead - Sticky */}
-                  {selectedDepartment.lead && (
+                  {selectedDepartment.leads.length > 0 && (
                     <div className="sticky top-0 bg-gradient-to-b from-[rgba(15,15,35,0.95)] to-[rgba(15,15,35,0.8)] backdrop-blur-sm z-10 pb-4">
                       <h4 className="text-lg font-semibold text-white mb-4">Department Lead</h4>
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                        <MemberCard
-                          member={selectedDepartment.lead}
-                          onClick={() => setSelectedMember(selectedDepartment.lead!)}
-                        />
+                        {selectedDepartment.leads.map((lead) => (
+                          <MemberCard
+                            key={lead.id}
+                            member={lead}
+                            onClick={() => setSelectedMember(lead)}
+                          />
+                        ))}
                       </div>
                     </div>
                   )}

@@ -138,10 +138,8 @@ export function CoreTeamTreeRedesigned() {
   )
 
   const DepartmentCard = ({ department }: { department: Department }) => (
-    <Card
-      className={`backdrop-panel ${getColorClasses(department.color)} glow-hover cursor-pointer transition-all duration-300`}
-      onClick={() => setSelectedDepartment(department)}
-    >
+    <Card  className= {`backdrop-panel ${getColorClasses(department.color)} glow-hover cursor-pointer transition-all duration-300`}
+      onClick={() => setSelectedDepartment(department)} >
       <CardContent className="p-6 text-center">
         <div className="flex justify-center mb-4">{department.icon}</div>
         <h3 className="font-bold text-white text-lg mb-2">{department.name}</h3>

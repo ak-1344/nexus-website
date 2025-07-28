@@ -363,17 +363,23 @@ export function HeroSectionRedesigned() {
     }
 
     window.addEventListener("mousemove", handleMouseMove)
-    window.addEventListener("touchmove", handleTouchMove, { passive: false })
-    window.addEventListener("touchstart", handleTouchStart)
-    window.addEventListener("touchend", handleTouchEnd)
     window.addEventListener("mouseleave", handleMouseLeave)
+
+    const canvas = canvasRef.current;
+    if (canvas) {
+      canvas.addEventListener("touchmove", handleTouchMove, { passive: false });
+      canvas.addEventListener("touchstart", handleTouchStart);
+      canvas.addEventListener("touchend", handleTouchEnd);
+    }
 
     return () => {
       window.removeEventListener("mousemove", handleMouseMove)
-      window.removeEventListener("touchmove", handleTouchMove)
-      window.removeEventListener("touchstart", handleTouchStart)
-      window.removeEventListener("touchend", handleTouchEnd)
       window.removeEventListener("mouseleave", handleMouseLeave)
+      if (canvas) {
+        canvas.removeEventListener("touchmove", handleTouchMove);
+        canvas.removeEventListener("touchstart", handleTouchStart);
+        canvas.removeEventListener("touchend", handleTouchEnd);
+      }
     }
   }, [])
 
@@ -474,17 +480,17 @@ export function HeroSectionRedesigned() {
   return (
     <motion.div
       ref={containerRef}
-      className="relative min-h-screen overflow-hidden bg-gradient-to-b from-black via-purple-900/20 to-black z-10"
+      className="relative min-h-screen overflow-hidden bg-gradient-to-b from-black via-purple-900/20 to-black"
       style={{ opacity }}
     >
       <canvas
         ref={canvasRef}
         className="absolute inset-0 z-0"
-        style={{ opacity: isMobile ? 0.6 : 0.8 }}
+        style={{ opacity: isMobile ? 0.4 : 0.8 }}
       />
       
       <motion.div
-        className="relative z-20 flex flex-col items-center justify-center min-h-screen px-4 text-center"
+        className="relative z-10 flex flex-col items-center justify-center min-h-screen px-4 text-center"
         style={{ y }}
       >
         <motion.div
@@ -494,76 +500,61 @@ export function HeroSectionRedesigned() {
           className="space-y-6"
         >
           {isMobile ? (
-            <motion.div
-              initial={{ y: 20, opacity: 0 }}
-              animate={!isLoading ? { y: 0, opacity: 1 } : { y: 20, opacity: 0 }}
-              transition={{ delay: 0.6, duration: 0.8 }}
-              className="flex flex-col items-center gap-4 mt-32"
-            >
+            <div className="flex flex-col items-center gap-4 mt-48 md:mt-64">
               <motion.div
-                animate={{
-                  scale: [1, 1.05, 1],
-                  rotate: [0, 2, -2, 0],
-                }}
-                transition={{
-                  duration: 4,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                }}
+                whileHover={{ scale: 1.08, boxShadow: "0 0 24px #a21caf" }}
                 className="relative"
               >
                 <div className="absolute inset-0 bg-purple-500/20 blur-2xl rounded-full" />
                 <Button
                   size="lg"
-                  className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white relative z-10 w-48"
+                  className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white relative z-10 w-48 transition-transform duration-300 shadow-lg hover:scale-105 hover:shadow-purple-500/40"
                 >
                   Join Us
                 </Button>
               </motion.div>
               <motion.div
-                animate={{
-                  y: [0, -5, 0],
-                }}
-                transition={{
-                  duration: 2,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                }}
+                whileHover={{ scale: 1.08, boxShadow: "0 0 24px #a21caf" }}
               >
                 <Button
                   size="lg"
                   variant="outline"
-                  className="border-white/20 text-white hover:bg-white/10 w-48"
+                  className="border-white/20 text-white hover:bg-white/10 w-48 transition-transform duration-300 shadow-lg hover:scale-105 hover:shadow-purple-500/40"
                 >
                   Learn More
                 </Button>
               </motion.div>
-            </motion.div>
+            </div>
           ) : (
-            <motion.div
-              initial={{ y: 20, opacity: 0 }}
-              animate={!isLoading ? { y: 0, opacity: 1 } : { y: 20, opacity: 0 }}
-              transition={{ delay: 0.6, duration: 0.8 }}
-              className="flex flex-wrap justify-center gap-4 mt-72"
-            >
-              <Button
-                size="lg"
-                className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white"
+            <div className="flex flex-wrap justify-center gap-4 mt-96">
+              <motion.div
+                whileHover={{ scale: 1.08, boxShadow: "0 0 24px #a21caf" }}
+                transition={{ type: 'spring', stiffness: 300 }}
               >
-                Join Us
-              </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                className="border-white/20 text-white hover:bg-white/10"
+                <Button
+                  size="lg"
+                  className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white transition-transform duration-300 shadow-lg hover:scale-105 hover:shadow-purple-500/40"
+                >
+                  Join Us
+                </Button>
+              </motion.div>
+              <motion.div
+                whileHover={{ scale: 1.08, boxShadow: "0 0 24px #a21caf" }}
+                transition={{ type: 'spring', stiffness: 300 }}
               >
-                Learn More
-              </Button>
-            </motion.div>
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="border-white/20 text-white hover:bg-white/10 transition-transform duration-300 shadow-lg hover:scale-105 hover:shadow-purple-500/40"
+                >
+                  Learn More
+                </Button>
+              </motion.div>
+            </div>
           )}
         </motion.div>
 
-        <div className="fixed right-4 bottom-4 space-y-4">
+        <div className="fixed right-4 bottom-20 md:bottom-4 space-y-4 z-20">
           {pinnedEvents.map((event, index) => (
             <Link key={event.id} href={`/events/${event.slug}?id=${event.id}`}>
               <motion.div
@@ -571,7 +562,7 @@ export function HeroSectionRedesigned() {
                 initial={{ y: 50, opacity: 0 }}
                 animate={!isLoading ? { y: 0, opacity: 1 } : { y: 50, opacity: 0 }}
                 transition={{ delay: 0.8 + index * 0.1, duration: 0.8 }}
-                className={`${isMobile ? 'bottom-4' : 'bottom-8'} max-w-md px-4 cursor-pointer hover:opacity-90`}
+                className="max-w-xs md:max-w-md px-3 md:px-4 cursor-pointer hover:opacity-90"
               >
                 <motion.div
                   animate={isMobile ? {
@@ -583,17 +574,17 @@ export function HeroSectionRedesigned() {
                     repeat: Infinity,
                     ease: "easeInOut",
                   }}
-                  className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20"
+                  className="bg-white/10 backdrop-blur-lg rounded-xl p-4 md:p-6 border border-white/20"
                 >
-                  <h3 className="text-xl font-semibold text-white mb-2">{event.title}</h3>
-                  <p className="text-white/80 mb-4 truncate">{event.description}</p>
-                  <div className="flex items-center gap-4 text-white/60">
-                    <div className="flex items-center gap-2">
-                      <Calendar className="w-4 h-4" />
+                  <h3 className="text-lg md:text-xl font-semibold text-white mb-2">{event.title}</h3>
+                  <p className="text-white/80 mb-3 md:mb-4 truncate text-sm">{event.description}</p>
+                  <div className="flex items-center gap-3 md:gap-4 text-white/60 text-xs md:text-sm">
+                    <div className="flex items-center gap-1 md:gap-2">
+                      <Calendar className="w-3 h-3 md:w-4 md:h-4" />
                       <span>{event.date}</span>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Clock className="w-4 h-4" />
+                    <div className="flex items-center gap-1 md:gap-2">
+                      <Clock className="w-3 h-3 md:w-4 md:h-4" />
                       <span>{event.time}</span>
                     </div>
                   </div>
@@ -608,7 +599,7 @@ export function HeroSectionRedesigned() {
         initial={{ opacity: 0 }}
         animate={!isLoading ? { opacity: 1 } : { opacity: 0 }}
         transition={{ delay: 1, duration: 1 }}
-        className={`absolute ${isMobile ? 'bottom-4' : 'bottom-8'} left-1/2 -translate-x-1/2 flex items-center gap-2 text-white/60`}
+        className="absolute bottom-4 md:bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-2 text-white/60 z-10"
       >
         <motion.span
           animate={isMobile ? {
@@ -619,6 +610,7 @@ export function HeroSectionRedesigned() {
             repeat: Infinity,
             ease: "easeInOut",
           }}
+          className="text-sm md:text-base"
         >
           Scroll to explore
         </motion.span>
@@ -648,7 +640,7 @@ export function HeroSectionRedesigned() {
               repeat: Infinity,
               ease: "easeInOut",
             }}
-            className="absolute top-20 left-8 text-purple-400/30"
+            className="absolute top-20 left-8 text-purple-400/30 z-5"
           >
             <Hexagon size={24} />
           </motion.div>
@@ -662,7 +654,7 @@ export function HeroSectionRedesigned() {
               repeat: Infinity,
               ease: "easeInOut",
             }}
-            className="absolute top-40 right-8 text-pink-400/30"
+            className="absolute top-40 right-8 text-pink-400/30 z-5"
           >
             <Sparkles size={24} />
           </motion.div>

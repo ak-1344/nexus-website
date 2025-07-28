@@ -5,6 +5,7 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
+import { MobileRadialNav } from "@/components/mobile-radial-nav"
 
 const navItems = [
   { name: "Home", path: "/" },
@@ -31,14 +32,15 @@ export function FloatingNav() {
   return (
     <>
       <motion.div
-        className="fixed top-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-500 via-pink-500 to-purple-500 origin-left z-50"
+        className="fixed top-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-500 via-pink-500 to-purple-500 origin-left z-[60]"
         style={{ scaleX }}
       />
+      {/* Desktop Floating Nav */}
       <motion.nav
         initial={{ y: -100 }}
         animate={{ y: 0 }}
         className={cn(
-          "fixed top-4 left-1/2 -translate-x-1/2 z-40 px-6 py-3 rounded-full transition-all duration-300",
+          "hidden md:flex fixed top-4 left-1/2 -translate-x-1/2 z-[55] px-6 py-3 rounded-full transition-all duration-300",
           isScrolled
             ? "bg-white/10 backdrop-blur-lg shadow-lg border border-white/20"
             : "bg-transparent"
@@ -79,6 +81,10 @@ export function FloatingNav() {
           ))}
         </div>
       </motion.nav>
+      {/* Mobile Radial Nav */}
+      <div className="md:hidden">
+        <MobileRadialNav navItems={navItems.map(({ name, path }) => ({ name, href: path }))} />
+      </div>
     </>
   )
 } 

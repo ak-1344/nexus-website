@@ -34,11 +34,11 @@ const images = [
 export function MarqueeGallery() {
   return (
     <div className="relative w-full overflow-hidden bg-black/20 backdrop-blur-sm py-8">
-      <div className="flex animate-marquee whitespace-wrap">
+      <div className="flex animate-marquee whitespace-nowrap">
         {[...images, ...images].map((image, index) => (
           <motion.div
             key={index}
-          className="relative mx-2 w-[400px] h-[200px] rounded-lg overflow-hidden shadow-lg"
+            className="relative mx-2 w-[280px] h-[160px] md:w-[400px] md:h-[200px] rounded-lg overflow-hidden shadow-lg flex-shrink-0"
             whileHover={{ scale: 1.05 }}
             transition={{ duration: 0.3 }}
           >
@@ -49,8 +49,8 @@ export function MarqueeGallery() {
               fill
               className="object-cover"
             />
-            <div className="absolute bottom-0 left-0 right-0 p-4 z-20">
-              <h3 className="text-white font-semibold text-xs break-words text-base">
+            <div className="absolute bottom-0 left-0 right-0 p-3 md:p-4 z-20">
+              <h3 className="text-white font-semibold text-sm md:text-base">
                 {image.title}
               </h3>
             </div>

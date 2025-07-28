@@ -151,23 +151,23 @@ export function CoreTeamTreeRedesigned() {
   )
 
   return (
-    <section id="team" className="py-12 lg:py-20 relative">
+    <section id="team" className="py-12 md:py-20 relative">
       <div className="container mx-auto px-4">
-        <div className="text-center mb-8 lg:mb-12">
+        <div className="text-center mb-8 md:mb-12">
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold gradient-text mb-4">Core Team Structure</h2>
-          <p className="text-lg lg:text-xl text-gray-300 max-w-2xl mx-auto">
+          <p className="text-base md:text-lg lg:text-xl text-gray-300 max-w-2xl mx-auto">
             Meet the dedicated individuals leading Nexus Club towards innovation and excellence
           </p>
         </div>
 
-        <div className="backdrop-panel rounded-2xl p-4 lg:p-8 glow-effect">
+        <div className="backdrop-panel rounded-2xl p-4 md:p-8 glow-effect">
           {/* Board Members - Main Center Node */}
-          <div className="mb-8 lg:mb-12">
+          <div className="mb-8 md:mb-12">
             <div className="flex items-center justify-center mb-6">
-              <Crown className="h-6 w-6 text-yellow-500 mr-2" />
-              <h3 className="text-xl lg:text-2xl font-bold gradient-text">Board Members</h3>
+              <Crown className="h-5 w-5 md:h-6 md:w-6 text-yellow-500 mr-2" />
+              <h3 className="text-lg md:text-xl lg:text-2xl font-bold gradient-text">Board Members</h3>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 lg:gap-6">
               {teamMembers
                 .filter((member) => member.department === "Board Members")
                 .map((member) => (
@@ -177,7 +177,7 @@ export function CoreTeamTreeRedesigned() {
           </div>
 
           {/* Departments Grid */}
-          <div className="responsive-grid gap-4 lg:gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4 lg:gap-6">
             {departments
               .filter((department) => department.name !== "Board Members")
               .map((department) => (
@@ -188,14 +188,14 @@ export function CoreTeamTreeRedesigned() {
 
         {/* Member Info Modal */}
         <Dialog open={!!selectedMember} onOpenChange={() => setSelectedMember(null)}>
-          <DialogContent className="modal-content max-w-md">
+          <DialogContent className="modal-content max-w-md mx-4">
             <DialogHeader>
               <DialogTitle className="gradient-text">Team Member</DialogTitle>
             </DialogHeader>
             {selectedMember && (
               <div className="space-y-4">
                 <div className="text-center">
-                  <div className="relative w-24 h-24 mx-auto mb-4">
+                  <div className="relative w-20 h-20 md:w-24 md:h-24 mx-auto mb-4">
                     {selectedMember.photo ? (
                       <Image
                         src={selectedMember.photo || "/placeholder.svg"}
@@ -205,31 +205,31 @@ export function CoreTeamTreeRedesigned() {
                       />
                     ) : (
                       <div className="w-full h-full bg-primary/20 rounded-full flex items-center justify-center">
-                        <User className="h-12 w-12 text-primary" />
+                        <User className="h-10 w-10 md:h-12 md:w-12 text-primary" />
                       </div>
                     )}
                   </div>
-                  <h3 className="text-xl font-bold text-white">{selectedMember.name}</h3>
-                  <Badge variant="outline" className="border-primary text-primary mt-2">
+                  <h3 className="text-lg md:text-xl font-bold text-white">{selectedMember.name}</h3>
+                  <Badge variant="outline" className="border-primary text-primary mt-2 text-xs md:text-sm">
                     {selectedMember.role}
                   </Badge>
                 </div>
 
                 {selectedMember.bio && <p className="text-gray-300 text-sm leading-relaxed">{selectedMember.bio}</p>}
 
-                <div className="flex gap-3 justify-center">
+                <div className="flex gap-2 md:gap-3 justify-center">
                   {selectedMember?.socialMedia?.find(sm => sm.platform === "Email") && (
-                    <Button size="sm" variant="outline" asChild>
+                    <Button size="sm" variant="outline" asChild className="text-xs md:text-sm">
                       <a href={selectedMember.socialMedia.find(sm => sm.platform === "Email")?.url}>
-                        <Mail className="h-4 w-4 mr-2" />
+                        <Mail className="h-3 w-3 md:h-4 md:w-4 mr-1 md:mr-2" />
                         Email
                       </a>
                     </Button>
                   )}
                   {selectedMember?.socialMedia?.find(sm => sm.platform === "LinkedIn") && (
-                    <Button size="sm" variant="outline" asChild>
+                    <Button size="sm" variant="outline" asChild className="text-xs md:text-sm">
                       <a href={selectedMember.socialMedia.find(sm => sm.platform === "LinkedIn")?.url} target="_blank" rel="noopener noreferrer">
-                        <Linkedin className="h-4 w-4 mr-2" />
+                        <Linkedin className="h-3 w-3 md:h-4 md:w-4 mr-1 md:mr-2" />
                         LinkedIn
                       </a>
                     </Button>
@@ -242,24 +242,24 @@ export function CoreTeamTreeRedesigned() {
 
         {/* Department Modal */}
         <Dialog open={!!selectedDepartment} onOpenChange={() => setSelectedDepartment(null)}>
-          <DialogContent className="modal-content max-w-4xl max-h-[85vh] flex flex-col">
+          <DialogContent className="modal-content max-w-4xl max-h-[85vh] flex flex-col mx-4">
             {selectedDepartment && (
               <div className="flex flex-col h-full">
                 {/* Fixed Header */}
                 <div className="flex-shrink-0 pb-4 border-b border-primary/20">
-                  <DialogTitle className="gradient-text flex items-center gap-2">
+                  <DialogTitle className="gradient-text flex items-center gap-2 text-lg md:text-xl">
                     {selectedDepartment?.icon}
                     {selectedDepartment?.name}
                   </DialogTitle>
                 </div>
 
                 {/* Scrollable Content */}
-                <div className="flex-1 overflow-y-auto custom-scrollbar mt-4 space-y-6">
+                <div className="flex-1 overflow-y-auto custom-scrollbar mt-4 space-y-4 md:space-y-6">
                   {/* Department Lead - Sticky */}
                   {selectedDepartment.leads.length > 0 && (
                     <div className="sticky top-0 bg-gradient-to-b from-[rgba(15,15,35,0.95)] to-[rgba(15,15,35,0.8)] backdrop-blur-sm z-10 pb-4">
-                      <h4 className="text-lg font-semibold text-white mb-4">Department Lead</h4>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                      <h4 className="text-base md:text-lg font-semibold text-white mb-3 md:mb-4">Department Lead</h4>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
                         {selectedDepartment.leads.map((lead) => (
                           <MemberCard
                             key={lead.id}
@@ -274,7 +274,7 @@ export function CoreTeamTreeRedesigned() {
                   {/* Regular Members */}
                   {selectedDepartment.members.length > 0 && (
                     <div>
-                      <h4 className="text-lg font-semibold text-white mb-4">Team Members</h4>
+                      <h4 className="text-base md:text-lg font-semibold text-white mb-3 md:mb-4">Team Members</h4>
                       <div className="space-y-2">
                         {selectedDepartment.members.map((member) => (
                           <div
@@ -282,8 +282,8 @@ export function CoreTeamTreeRedesigned() {
                             className="flex items-center justify-between p-3 backdrop-panel rounded-lg"
                           >
                             <div>
-                              <span className="text-white font-medium">{member.name}</span>
-                              <p className="text-sm text-gray-400">{member.role}</p>
+                              <span className="text-white font-medium text-sm md:text-base">{member.name}</span>
+                              <p className="text-xs md:text-sm text-gray-400">{member.role}</p>
                             </div>
                             {member.socialMedia?.find(sm => sm.platform === "LinkedIn") && (
                               <a
@@ -292,7 +292,7 @@ export function CoreTeamTreeRedesigned() {
                                 rel="noopener noreferrer"
                                 className="text-primary hover:text-primary/80"
                               >
-                                <Linkedin className="h-4 w-4" />
+                                <Linkedin className="h-3 w-3 md:h-4 md:w-4" />
                               </a>
                             )}
                           </div>

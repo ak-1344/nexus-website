@@ -2,7 +2,7 @@
 
 import { useRef, useState, useEffect, memo, useMemo } from "react"
 import { Canvas, useFrame, useThree } from "@react-three/fiber"
-import { Environment, OrbitControls, Float, Text3D, Sphere, MeshDistortMaterial } from "@react-three/drei"
+import { OrbitControls, Float, Text3D, Sphere, MeshDistortMaterial } from "@react-three/drei"
 import type { Group } from "three"
 
 // Memoize the GridPoints component
@@ -146,7 +146,8 @@ export function MainScene() {
       <color attach="background" args={["#050505"]} />
       <fog attach="fog" args={["#050505", 10, 40]} />
       <ambientLight intensity={0.2} />
-      <Environment preset="city" />
+      <directionalLight position={[10, 10, 5]} intensity={0.5} />
+      <directionalLight position={[-10, -10, -5]} intensity={0.3} />
 
       <OrbitControls
         enableZoom={false}

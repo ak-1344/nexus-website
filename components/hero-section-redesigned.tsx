@@ -556,7 +556,7 @@ export function HeroSectionRedesigned() {
           )}
         </motion.div>
 
-        <div className="fixed right-4 bottom-20 md:bottom-4 space-y-4 z-20">
+        <div className="fixed right-2 md:right-4 bottom-32 md:bottom-4 space-y-2 md:space-y-4 z-20">
           {pinnedEvents.map((event, index) => (
             <Link key={event.id} href={`/events/${event.slug}?id=${event.id}`}>
               <motion.div
@@ -564,7 +564,7 @@ export function HeroSectionRedesigned() {
                 initial={{ y: 50, opacity: 0 }}
                 animate={!isLoading ? { y: 0, opacity: 1 } : { y: 50, opacity: 0 }}
                 transition={{ delay: 0.8 + index * 0.1, duration: 0.8 }}
-                className="max-w-xs md:max-w-md px-3 md:px-4 cursor-pointer hover:opacity-90"
+                className="max-w-[280px] md:max-w-md px-3 md:px-4 cursor-pointer hover:opacity-90"
               >
                 <motion.div
                   animate={isMobile ? {
@@ -576,10 +576,10 @@ export function HeroSectionRedesigned() {
                     repeat: Infinity,
                     ease: "easeInOut",
                   }}
-                  className="bg-white/10 backdrop-blur-lg rounded-xl p-4 md:p-6 border border-white/20"
+                  className="bg-white/10 backdrop-blur-lg rounded-xl p-3 md:p-6 border border-white/20"
                 >
-                  <h3 className="text-lg md:text-xl font-semibold text-white mb-2">{event.title}</h3>
-                  <p className="text-white/80 mb-3 md:mb-4 truncate text-sm">{event.description}</p>
+                  <h3 className="text-base md:text-xl font-semibold text-white mb-2">{event.title}</h3>
+                  <p className="text-white/80 mb-2 md:mb-4 truncate text-xs md:text-sm">{event.description}</p>
                   <div className="flex items-center gap-3 md:gap-4 text-white/60 text-xs md:text-sm">
                     <div className="flex items-center gap-1 md:gap-2">
                       <Calendar className="w-3 h-3 md:w-4 md:h-4" />

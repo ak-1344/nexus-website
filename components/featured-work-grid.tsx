@@ -139,9 +139,9 @@ export function FeaturedWorkGrid() {
   return (
     <section className="py-12 md:py-20 relative">
       <div className="container mx-auto px-4">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8 h-auto lg:h-[600px]">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8 h-auto lg:h-[600px] min-h-0">
           {/* Past Events Box */}
-          <div className="backdrop-panel rounded-2xl p-4 md:p-6 glow-effect h-[400px] lg:h-auto">
+          <div className="backdrop-panel rounded-2xl p-4 md:p-6 glow-effect h-[400px] lg:h-auto max-h-[60vh] lg:max-h-none">
             <div className="flex items-center justify-between mb-4 md:mb-6">
               <h2 className="text-xl md:text-2xl font-bold gradient-text">🕰 Past Events</h2>
               <Button variant="ghost" size="sm" className="text-primary hover:text-primary/80" asChild>
@@ -150,7 +150,7 @@ export function FeaturedWorkGrid() {
                 </Link>
               </Button>
             </div>
-            <div className="overflow-y-auto h-[300px] lg:h-[480px] pr-2 space-y-3 md:space-y-4 custom-scrollbar">
+            <div className="overflow-y-auto h-[300px] lg:h-[480px] max-h-[calc(60vh-80px)] lg:max-h-none pr-2 space-y-3 md:space-y-4 custom-scrollbar">
               {pastEvents.map((event) => (
                 <EventCard key={event.id} event={event} />
               ))}
@@ -158,7 +158,7 @@ export function FeaturedWorkGrid() {
           </div>
 
           {/* Upcoming Events Box */}
-          <div className="backdrop-panel rounded-2xl p-4 md:p-6 glow-effect h-[400px] lg:h-auto">
+          <div className="backdrop-panel rounded-2xl p-4 md:p-6 glow-effect h-[400px] lg:h-auto max-h-[60vh] lg:max-h-none">
             <div className="flex items-center justify-between mb-4 md:mb-6">
               <h2 className="text-xl md:text-2xl font-bold gradient-text">🔮 What's Coming Up?</h2>
               <Button variant="ghost" size="sm" className="text-primary hover:text-primary/80" asChild>
@@ -167,7 +167,7 @@ export function FeaturedWorkGrid() {
                 </Link>
               </Button>
             </div>
-            <div className="overflow-y-auto h-[300px] lg:h-[480px] pr-2 space-y-3 md:space-y-4 custom-scrollbar">
+            <div className="overflow-y-auto h-[300px] lg:h-[480px] max-h-[calc(60vh-80px)] lg:max-h-none pr-2 space-y-3 md:space-y-4 custom-scrollbar">
               {upcomingEvents.map((event) => (
                 <EventCard key={event.id} event={event} />
               ))}
@@ -177,7 +177,7 @@ export function FeaturedWorkGrid() {
           {/* Split Box - Magazines & Gallery */}
           <div className="space-y-4">
             {/* Magazines Section */}
-            <div className="backdrop-panel rounded-2xl p-4 md:p-6 glow-effect h-[200px] md:h-[280px]">
+            <div className="backdrop-panel rounded-2xl p-4 md:p-6 glow-effect h-[200px] md:h-[280px] max-h-[50vh] md:max-h-none">
               <div className="flex items-center justify-between mb-3 md:mb-4">
                 <h2 className="text-lg md:text-xl font-bold gradient-text">📚 Magazines & Publications</h2>
                 <Button variant="ghost" size="sm" className="text-primary hover:text-primary/80" asChild>
@@ -186,16 +186,16 @@ export function FeaturedWorkGrid() {
                   </Link>
                 </Button>
               </div>
-              <div className="overflow-y-auto h-[140px] md:h-[200px] pr-2 space-y-2 md:space-y-3 custom-scrollbar">
+              <div className="overflow-y-auto h-[120px] md:h-[200px] max-h-[calc(50vh-80px)] md:max-h-none pr-2 space-y-2 md:space-y-3 custom-scrollbar">
                 {magazines.map((magazine) => (
                   <Card key={magazine.id} className="backdrop-panel border-primary/20 glow-hover cursor-pointer p-2 md:p-3">
                     <div className="flex items-center gap-2 md:gap-3">
                       <div className="w-8 h-8 md:w-10 md:h-10 bg-primary/20 rounded-lg flex items-center justify-center">
                         <FileText className="h-4 w-4 md:h-5 md:w-5 text-primary" />
                       </div>
-                      <div className="flex-1">
-                        <h4 className="font-medium text-white text-xs md:text-sm">{magazine.title}</h4>
-                        <p className="text-xs text-gray-400">
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-medium text-white text-xs md:text-sm truncate">{magazine.title}</h4>
+                        <p className="text-xs text-gray-400 truncate">
                           {magazine.issue} • {new Date(magazine.date).toLocaleDateString()}
                         </p>
                       </div>
@@ -206,7 +206,7 @@ export function FeaturedWorkGrid() {
             </div>
 
             {/* Gallery Section */}
-            <div className="backdrop-panel rounded-2xl p-4 md:p-6 glow-effect h-[200px] md:h-[280px]">
+            <div className="backdrop-panel rounded-2xl p-4 md:p-6 glow-effect h-[200px] md:h-[280px] max-h-[50vh] md:max-h-none">
               <div className="flex items-center justify-between mb-3 md:mb-4">
                 <h2 className="text-lg md:text-xl font-bold gradient-text">📸 Explore Gallery</h2>
                 <Button variant="ghost" size="sm" className="text-primary hover:text-primary/80" asChild>
@@ -215,11 +215,11 @@ export function FeaturedWorkGrid() {
                   </Link>
                 </Button>
               </div>
-              <div className="overflow-y-auto h-[140px] md:h-[200px] pr-2 space-y-2 md:space-y-3 custom-scrollbar">
+              <div className="overflow-y-auto h-[120px] md:h-[200px] max-h-[calc(50vh-80px)] md:max-h-none pr-2 space-y-2 md:space-y-3 custom-scrollbar">
                 {galleries.map((gallery) => (
                   <Card key={gallery.id} className="backdrop-panel border-primary/20 glow-hover cursor-pointer">
                     <div className="flex items-center gap-2 md:gap-3 p-2 md:p-3">
-                      <div className="relative w-10 h-10 md:w-12 md:h-12 rounded-lg overflow-hidden">
+                      <div className="relative w-10 h-10 md:w-12 md:h-12 rounded-lg overflow-hidden flex-shrink-0">
                         <Image
                           src={gallery.coverImage || "/placeholder.svg"}
                           alt={gallery.title}
@@ -227,11 +227,11 @@ export function FeaturedWorkGrid() {
                           className="object-cover"
                         />
                       </div>
-                      <div className="flex-1">
-                        <h4 className="font-medium text-white text-xs md:text-sm">{gallery.title}</h4>
-                        <p className="text-xs text-gray-400">{gallery.photoCount} photos</p>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-medium text-white text-xs md:text-sm truncate">{gallery.title}</h4>
+                        <p className="text-xs text-gray-400 truncate">{gallery.photoCount} photos</p>
                       </div>
-                      <ImageIcon className="h-3 w-3 md:h-4 md:w-4 text-primary" />
+                      <ImageIcon className="h-3 w-3 md:h-4 md:w-4 text-primary flex-shrink-0" />
                     </div>
                   </Card>
                 ))}

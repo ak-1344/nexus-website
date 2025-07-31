@@ -104,18 +104,18 @@ export function HeroSectionRedesigned() {
       
       ctx.translate(canvas.width / 2 - totalWidth / 2, canvas.height / 2 - logoHeight / 2 - 100)
 
-      // Draw NEXUS text in purple
+      // Draw NEXUS text in bright purple for better visibility
       ctx.save()
-      ctx.fillStyle = '#8B5CF6'
+      ctx.fillStyle = isMobile ? '#A855F7' : '#8B5CF6' // Brighter purple on mobile
       ctx.font = `bold ${logoHeight * 0.8}px Arial`
       ctx.textAlign = 'center'
       ctx.textBaseline = 'middle'
       ctx.fillText('NEXUS', nexusWidth / 2, logoHeight / 2)
       ctx.restore()
 
-      // Draw tagline in white
+      // Draw tagline in bright white for better visibility
       ctx.save()
-      ctx.fillStyle = 'white'
+      ctx.fillStyle = '#FFFFFF' // Pure white for maximum visibility
       ctx.font = `${logoHeight * 0.3}px Arial`
       ctx.textAlign = 'center'
       ctx.textBaseline = 'middle'
@@ -150,15 +150,17 @@ export function HeroSectionRedesigned() {
               y: y,
               baseX: x,
               baseY: y,
-              size: Math.random() * 1 + 0.5,
-              color: 'white',
-              scatteredColor: '#8B5CF6',
+              size: isMobile ? Math.random() * 1.5 + 0.8 : Math.random() * 1 + 0.5, // Larger particles on mobile
+              color: '#FFFFFF', // Pure white for better visibility
+              scatteredColor: isMobile ? '#A855F7' : '#8B5CF6', // Brighter purple on mobile
               life: Math.random() * 100 + 50
             }
           }
 
-          // Calculate gradient color for NEXUS particles
-          const gradientColors = ['#8b5cf6', '#a855f7', '#c084fc']
+          // Calculate gradient color for NEXUS particles - brighter on mobile
+          const gradientColors = isMobile 
+            ? ['#A855F7', '#C084FC', '#DDD6FE'] // Brighter gradient for mobile
+            : ['#8b5cf6', '#a855f7', '#c084fc'] // Original gradient for desktop
           const logoHeight = isMobile ? 100 : 180
           const nexusWidth = logoHeight * 2
           const startX = canvas.width / 2 - nexusWidth / 2
@@ -183,9 +185,9 @@ export function HeroSectionRedesigned() {
             y: y,
             baseX: x,
             baseY: y,
-            size: Math.random() * 1 + 0.5,
+            size: isMobile ? Math.random() * 1.5 + 0.8 : Math.random() * 1 + 0.5, // Larger particles on mobile
             color: nexusColor,
-            scatteredColor: '#8B5CF6',
+            scatteredColor: isMobile ? '#A855F7' : '#8B5CF6', // Brighter scattered color on mobile
             life: Math.random() * 100 + 50
           }
         }

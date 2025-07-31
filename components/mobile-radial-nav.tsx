@@ -1,11 +1,29 @@
 import { useState, useRef, useEffect } from "react"
 import Link from "next/link"
-import { Hexagon } from "lucide-react"
+import { Hexagon, Home, Calendar, Users, Image, Mail } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 
 interface NavItem {
   name: string
   href: string
+}
+
+// Function to get the appropriate icon for each navigation item
+const getNavIcon = (name: string) => {
+  switch (name.toLowerCase()) {
+    case 'home':
+      return <Home size={16} />
+    case 'events':
+      return <Calendar size={16} />
+    case 'team':
+      return <Users size={16} />
+    case 'gallery':
+      return <Image size={16} />
+    case 'contact':
+      return <Mail size={16} />
+    default:
+      return <Hexagon size={16} />
+  }
 }
 
 interface MobileRadialNavProps {
@@ -83,7 +101,9 @@ export function MobileRadialNav({ navItems }: MobileRadialNavProps) {
                         className="flex flex-col items-center group"
                       >
                         <span className="w-10 h-10 flex items-center justify-center rounded-full bg-gradient-to-br from-purple-500 via-pink-500 to-purple-700 shadow-lg border-2 border-white/10 group-hover:scale-110 group-hover:shadow-xl transition-all duration-300">
-                          <span className="text-base font-extrabold text-white drop-shadow select-none" style={{fontFamily: 'Inter, sans-serif', letterSpacing: '-0.05em'}}>N</span>
+                          <span className="text-white drop-shadow select-none">
+                            {getNavIcon(item.name)}
+                          </span>
                         </span>
                         <span className="mt-1 text-xs font-semibold text-white drop-shadow group-hover:text-pink-300 transition-colors duration-200">
                           {item.name}

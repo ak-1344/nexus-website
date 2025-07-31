@@ -31,7 +31,7 @@ export function FromTheDesk() {
 
                   <div className="flex items-center gap-3">
                     <div>
-                      <p className="font-semibold text-white text-sm md:text-base">Aditya Kumar</p>
+                      <p className="font-semibold text-white text-sm md:text-base">Aditya</p>
                       <p className="text-xs md:text-sm text-primary">President, Nexus Club</p>
                     </div>
                     <PenTool className="h-3 w-3 md:h-4 md:w-4 text-primary ml-auto" />

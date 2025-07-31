@@ -556,7 +556,7 @@ export function HeroSectionRedesigned() {
           )}
         </motion.div>
 
-        <div className="fixed right-2 md:right-4 bottom-80 md:bottom-4 space-y-2 md:space-y-4 z-20">
+        <div className="fixed right-2 md:right-4 bottom-32 md:bottom-4 space-y-2 md:space-y-4 z-20">
           {pinnedEvents.map((event, index) => (
             <Link key={event.id} href={`/events/${event.slug}?id=${event.id}`}>
               <motion.div
